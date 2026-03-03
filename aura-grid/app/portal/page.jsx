@@ -300,12 +300,6 @@ export default function PortalPage() {
                                             ))}
                                         </div>
                                     </div>
-                                    {/* Formula */}
-                                    <div className="bg-accent-cyan/5 border border-accent-cyan/10 rounded-lg px-3.5 py-2.5">
-                                        <div className="text-[0.7rem] text-text-muted mb-1">WEIGHT FUNCTION PARAMS</div>
-                                        <div className="font-mono text-sm">w(u,v) = <span className="text-[#a78bfa]">0.2</span>·d + <span className="text-accent-amber">0.5</span>·ρ + <span className="text-accent-red">0.3</span>·s</div>
-                                        <div className="text-[0.7rem] text-text-muted mt-1">β,γ elevated for emergency priority</div>
-                                    </div>
                                     {!corridorActive && (
                                         <button onClick={initiateWave} disabled={initiating}
                                             className="w-full py-4 rounded-xl font-bold text-base bg-gradient-to-br from-accent-green to-[#00cc7a] text-black shadow-[0_0_20px_rgba(0,255,157,0.3)] hover:shadow-[0_0_30px_rgba(0,255,157,0.6)] disabled:opacity-60 transition-all font-sans cursor-pointer">
@@ -314,21 +308,6 @@ export default function PortalPage() {
                                     )}
                                 </div>
                             )}
-                        </div>
-
-                        {/* Audit log */}
-                        <div className="bg-bg-card border border-white/5 rounded-xl p-6">
-                            <h3 className="text-base font-bold mb-1">📋 Session Audit Log</h3>
-                            <p className="text-text-secondary text-xs mb-4">All actions are recorded and tamper-evident.</p>
-                            <div className="flex flex-col gap-1.5 max-h-40 overflow-y-auto">
-                                {auditLog.map((a, i) => (
-                                    <div key={i} className="flex items-center gap-2 py-1.5 border-b border-white/[0.04] text-xs">
-                                        <span className="text-text-muted font-mono text-[0.67rem]">[{a.time}]</span>
-                                        <Badge variant={a.type === 'AUTH' ? 'cyan' : a.type === 'SESSION' ? 'violet' : a.type === 'ROUTE' ? 'amber' : 'green'} className="text-[0.62rem]">{a.type}</Badge>
-                                        <span className="text-text-secondary">{a.msg}</span>
-                                    </div>
-                                ))}
-                            </div>
                         </div>
                     </div>
 
@@ -362,8 +341,8 @@ export default function PortalPage() {
                                         <div key={label} className="flex items-start gap-3 relative pb-2">
                                             {i < a.length - 1 && <div className={`absolute left-[7px] top-4 w-0.5 h-full ${type === 'done' ? 'bg-accent-green/30' : type === 'active' ? 'bg-accent-cyan/30' : 'bg-white/10'}`} />}
                                             <div className={`w-4 h-4 rounded-full flex-shrink-0 border-2 mt-0.5 ${type === 'done' ? 'bg-accent-green border-accent-green/50' :
-                                                    type === 'active' ? 'bg-accent-cyan border-accent-cyan shadow-neon-cyan animate-pulse-dot' :
-                                                        type === 'prep' ? 'bg-accent-amber border-accent-amber/50' : 'bg-[#334155] border-[#475569]'}`} />
+                                                type === 'active' ? 'bg-accent-cyan border-accent-cyan shadow-neon-cyan animate-pulse-dot' :
+                                                    type === 'prep' ? 'bg-accent-amber border-accent-amber/50' : 'bg-[#334155] border-[#475569]'}`} />
                                             <div>
                                                 <div className="text-sm font-semibold">{label}</div>
                                                 <div className={`text-xs mt-0.5 ${type === 'done' ? 'text-accent-green' : type === 'active' ? 'text-accent-cyan' : type === 'prep' ? 'text-accent-amber' : 'text-text-muted'}`}>{status}</div>

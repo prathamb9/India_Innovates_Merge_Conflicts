@@ -37,27 +37,21 @@ function densityColor(d) {
     if (d < 70) return 'text-accent-amber';
     return 'text-accent-red';
 }
-function densityBorder(d, corridor, emergency) {
-    if (emergency) return 'border-accent-red/60 bg-[rgba(255,59,92,0.06)] animate-pulse-border';
-    if (corridor) return 'border-accent-cyan/70 bg-[rgba(0,245,255,0.05)] shadow-[0_0_16px_rgba(0,245,255,0.2)]';
-    return 'border-white/5 hover:border-accent-cyan/40';
+function densityBarColor(d) {
+    if (d < 40) return 'progress-fill-green';
+    if (d < 70) return 'progress-fill-amber';
+    return 'progress-fill-red';
 }
-function lightState(d) {
-    if (d < 40) return { r: false, a: false, g: true };
-    if (d < 70) return { r: false, a: true, g: false };
-    return { r: true, a: false, g: false };
+function cardBorder(d, corridor, emergency) {
+    if (emergency) return 'border-accent-red/50 bg-[rgba(255,59,92,0.04)]';
+    if (corridor) return 'border-accent-cyan/40 bg-[rgba(0,245,255,0.03)]';
+    return 'border-white/5 hover:border-white/10';
 }
 
-/* ── Mini traffic light dots ── */
-function MiniTL({ d }) {
-    const { r, a, g } = lightState(d);
-    return (
-        <div className="absolute top-2 right-2 flex flex-col gap-[3px]">
-            <div className={`w-1.5 h-1.5 rounded-full ${r ? 'bg-accent-red shadow-neon-red' : 'bg-white/10'}`} />
-            <div className={`w-1.5 h-1.5 rounded-full ${a ? 'bg-accent-amber shadow-neon-amber' : 'bg-white/10'}`} />
-            <div className={`w-1.5 h-1.5 rounded-full ${g ? 'bg-accent-green shadow-neon-green' : 'bg-white/10'}`} />
-        </div>
-    );
+/* ── Small light dot ── */
+function LightDot({ d }) {
+    const c = d < 40 ? 'bg-accent-green shadow-neon-green' : d < 70 ? 'bg-accent-amber shadow-neon-amber' : 'bg-accent-red shadow-neon-red';
+    return <div className={`w-2 h-2 rounded-full flex-shrink-0 ${c}`} />;
 }
 
 /* ── Intersection node card ── */
@@ -65,24 +59,17 @@ function IntNode({ node, onClick }) {
     return (
         <div
             onClick={() => onClick(node)}
-            className={`bg-bg-card border rounded-xl p-2.5 cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-lg relative min-h-[90px] flex flex-col justify-between ${densityBorder(node.density, node.corridor, node.emergency)}`}
+            className={`bg-bg-card border rounded-xl p-3 cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md flex items-center gap-3 ${cardBorder(node.density, node.corridor, node.emergency)}`}
         >
-            <div>
-                <div className="text-[0.62rem] font-mono text-text-muted">{node.id}</div>
-                <div className="text-[0.7rem] font-semibold leading-snug mt-0.5 pr-4">{node.name}</div>
+            <LightDot d={node.density} />
+            <div className="flex-1 min-w-0">
+                <div className="text-[0.6rem] font-mono text-text-muted">{node.id}</div>
+                <div className="text-[0.72rem] font-semibold truncate leading-snug">{node.name}</div>
+                <div className="h-1 bg-white/5 rounded-full mt-1.5 overflow-hidden">
+                    <div className={`h-full rounded-full transition-all duration-700 ${densityBarColor(node.density)}`} style={{ width: `${node.density}%` }} />
+                </div>
             </div>
-            <div className={`text-[0.78rem] font-extrabold font-mono ${densityColor(node.density)}`}>{node.density}%</div>
-            <MiniTL d={node.density} />
-        </div>
-    );
-}
-
-/* ── Sidebar row ── */
-function StatRow({ label, value, color = 'text-accent-cyan' }) {
-    return (
-        <div className="flex justify-between items-center py-1.5 border-b border-white/[0.04]">
-            <span className="text-[0.78rem] text-text-secondary">{label}</span>
-            <span className={`text-[0.88rem] font-bold font-mono ${color}`}>{value}</span>
+            <div className={`text-[0.82rem] font-black font-mono flex-shrink-0 ${densityColor(node.density)}`}>{node.density}%</div>
         </div>
     );
 }
@@ -94,10 +81,10 @@ function FlowChart() {
         const canvas = ref.current; if (!canvas) return;
         const ctx = canvas.getContext('2d');
         const w = canvas.width, h = canvas.height;
-        const data = Array.from({ length: 24 }, (_, i) => 20 + Math.random() * 60 + Math.sin(i * 0.5) * 20);
+        const data = Array.from({ length: 20 }, (_, i) => 20 + Math.random() * 60 + Math.sin(i * 0.5) * 20);
         ctx.clearRect(0, 0, w, h);
         const grad = ctx.createLinearGradient(0, 0, 0, h);
-        grad.addColorStop(0, 'rgba(0,245,255,0.3)');
+        grad.addColorStop(0, 'rgba(0,245,255,0.25)');
         grad.addColorStop(1, 'rgba(0,245,255,0)');
         ctx.beginPath();
         data.forEach((v, i) => { const x = (i / (data.length - 1)) * w, y = h - (v / 100) * h; i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); });
@@ -105,10 +92,10 @@ function FlowChart() {
         ctx.fillStyle = grad; ctx.fill();
         ctx.beginPath();
         data.forEach((v, i) => { const x = (i / (data.length - 1)) * w, y = h - (v / 100) * h; i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); });
-        ctx.strokeStyle = 'rgba(0,245,255,0.8)'; ctx.lineWidth = 2; ctx.stroke();
+        ctx.strokeStyle = 'rgba(0,245,255,0.7)'; ctx.lineWidth = 1.5; ctx.stroke();
     }, []);
-    useEffect(() => { draw(); const t = setInterval(draw, 5000); return () => clearInterval(t); }, [draw]);
-    return <canvas ref={ref} width={240} height={100} className="w-full" />;
+    useEffect(() => { draw(); const t = setInterval(draw, 4000); return () => clearInterval(t); }, [draw]);
+    return <canvas ref={ref} width={300} height={80} className="w-full opacity-90" />;
 }
 
 /* ── Node detail panel ── */
@@ -117,29 +104,31 @@ function NodeDetail({ node, onClose }) {
     const ns = Math.min(node.density + 10, 99);
     const ew = Math.max(100 - node.density - 10, 5);
     return (
-        <div className={`absolute bottom-4 left-4 right-4 bg-[rgba(13,17,23,0.97)] backdrop-blur-xl border border-accent-cyan/30 rounded-xl p-5 shadow-[0_-8px_40px_rgba(0,0,0,0.6)] transition-all z-20`}>
+        <div className="absolute inset-x-0 bottom-0 bg-[rgba(13,17,23,0.98)] backdrop-blur-xl border-t border-accent-cyan/20 rounded-t-2xl p-5 z-20 shadow-[0_-12px_40px_rgba(0,0,0,0.5)]">
             <div className="flex justify-between items-start mb-4">
-                <div><Badge variant="cyan">{node.id}</Badge><h3 className="mt-1.5 font-bold">{node.name}</h3></div>
+                <div>
+                    <div className="flex items-center gap-2 mb-1"><Badge variant="cyan">{node.id}</Badge>{node.corridor && <Badge variant="green">Corridor Active</Badge>}{node.emergency && <Badge variant="red">Emergency</Badge>}</div>
+                    <h3 className="font-bold text-base">{node.name}</h3>
+                </div>
                 <div className="flex gap-2">
-                    <button className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-gradient-to-br from-accent-green to-[#00cc7a] text-black shadow-neon-green">Activate Corridor</button>
-                    <button onClick={onClose} className="px-2 py-1.5 rounded-lg text-xs font-semibold bg-white/5 border border-white/5 text-text-muted hover:text-white">✕</button>
+                    <Link href="/portal" className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-gradient-to-br from-accent-green to-[#00cc7a] text-black no-underline">Activate Corridor</Link>
+                    <button onClick={onClose} className="px-2.5 py-1.5 rounded-lg text-xs bg-white/5 text-text-muted hover:text-white font-sans cursor-pointer">✕</button>
                 </div>
             </div>
-            <div className="grid grid-cols-6 gap-3">
-                {[
-                    { label: 'N-S Density', value: `${ns}%`, bar: ns, color: 'amber' },
-                    { label: 'E-W Density', value: `${ew}%`, bar: ew, color: 'green' },
-                ].map(({ label, value, bar, color }) => (
-                    <div key={label} className="col-span-2">
-                        <div className="text-[0.65rem] text-text-muted uppercase tracking-wide mb-1">{label}</div>
-                        <div className="text-base font-bold font-mono mb-1">{value}</div>
-                        <div className="h-1.5 bg-white/5 rounded-full overflow-hidden"><div className={`h-full rounded-full progress-fill-${color}`} style={{ width: `${bar}%` }} /></div>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+                {[['N-S Flow', ns, 'amber'], ['E-W Flow', ew, 'green']].map(([label, val, color]) => (
+                    <div key={label}>
+                        <div className="flex justify-between text-xs mb-1.5"><span className="text-text-muted">{label}</span><span className="font-bold font-mono">{val}%</span></div>
+                        <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                            <div className={`h-full rounded-full progress-fill-${color}`} style={{ width: `${val}%` }} />
+                        </div>
                     </div>
                 ))}
-                <div><div className="text-[0.65rem] text-text-muted uppercase tracking-wide mb-1">Phase</div><div className="text-sm font-bold text-accent-green">N-S GREEN</div></div>
-                <div><div className="text-[0.65rem] text-text-muted uppercase tracking-wide mb-1">Cycle</div><div className="text-sm font-bold font-mono">{Math.round(15 + node.density * 0.4)}s</div></div>
-                <div><div className="text-[0.65rem] text-text-muted uppercase tracking-wide mb-1">Camera</div><div className="text-sm font-bold text-accent-green">✓ Online</div></div>
-                <div><div className="text-[0.65rem] text-text-muted uppercase tracking-wide mb-1">Detections</div><div className="text-sm font-bold font-mono">{(800 + Math.round(node.density * 15)).toLocaleString()}</div></div>
+            </div>
+            <div className="grid grid-cols-4 gap-3 text-xs">
+                {[['Phase', 'N-S GREEN', 'text-accent-green'], ['Cycle', `${Math.round(15 + node.density * 0.4)}s`, 'text-text-primary'], ['Camera', 'Online', 'text-accent-green'], ['Detections', `${(800 + Math.round(node.density * 15)).toLocaleString()}`, 'text-accent-cyan']].map(([l, v, c]) => (
+                    <div key={l}><div className="text-text-muted text-[0.65rem] uppercase mb-1">{l}</div><div className={`font-bold ${c}`}>{v}</div></div>
+                ))}
             </div>
         </div>
     );
@@ -151,17 +140,13 @@ export default function DashboardPage() {
     const [etaSec, setEtaSec] = useState(222);
     const [speed, setSpeed] = useState(68);
     const [toastVisible, setToastVisible] = useState(false);
-    const [alerts, setAlerts] = useState([
-        { msg: '🚑 Ambulance en route — Node 07 corridor active', time: '14:32:05', color: 'red' },
-        { msg: '⚠️ High density — North Ring Road Intersection', time: '14:31:47', color: 'amber' },
-        { msg: '📷 Camera CAM-03 degraded signal', time: '14:28:12', color: 'cyan' },
-    ]);
+
     const LANES = [
         { idx: 15, label: 'North Ring Rd' }, { idx: 10, label: 'MG Road' },
-        { idx: 2, label: 'Airport Blvd' }, { idx: 11, label: 'Outer Ring Rd' }, { idx: 17, label: 'City Center' },
+        { idx: 2, label: 'Airport Blvd' }, { idx: 11, label: 'Outer Ring Rd' },
     ];
 
-    // Live density update
+    /* Live density update */
     useEffect(() => {
         const t = setInterval(() => {
             setNodes(prev => prev.map(n => ({ ...n, density: Math.max(5, Math.min(99, n.density + Math.floor(Math.random() * 7) - 3)) })));
@@ -169,7 +154,7 @@ export default function DashboardPage() {
         return () => clearInterval(t);
     }, []);
 
-    // ETA countdown
+    /* ETA countdown */
     useEffect(() => {
         const t = setInterval(() => {
             setEtaSec(s => Math.max(0, s - 1));
@@ -178,18 +163,18 @@ export default function DashboardPage() {
         return () => clearInterval(t);
     }, []);
 
-    // Toast after 3s
-    useEffect(() => { const t = setTimeout(() => setToastVisible(true), 3000); return () => clearTimeout(t); }, []);
+    /* Toast on load */
+    useEffect(() => { const t = setTimeout(() => setToastVisible(true), 2500); return () => clearTimeout(t); }, []);
 
     function simulateAlert() {
         const rnd = Math.floor(Math.random() * nodes.length);
         setNodes(prev => prev.map((n, i) => i === rnd ? { ...n, emergency: true } : n));
-        setAlerts(prev => [{ msg: `🚑 Visual Override — ${nodes[rnd].id}: Ambulance detected (97.8%)`, time: new Date().toLocaleTimeString(), color: 'red' }, ...prev]);
         setToastVisible(true);
         setTimeout(() => setNodes(prev => prev.map((n, i) => i === rnd ? { ...n, emergency: false } : n)), 8000);
     }
 
     const etaStr = `${Math.floor(etaSec / 60)}m ${(etaSec % 60).toString().padStart(2, '0')}s`;
+    const avgDensity = Math.round(nodes.reduce((s, n) => s + n.density, 0) / nodes.length);
 
     return (
         <div className="bg-bg-deep text-text-primary font-sans h-screen flex flex-col overflow-hidden">
@@ -203,158 +188,132 @@ export default function DashboardPage() {
                         <span><span className="text-accent-cyan">AURA</span>-GRID</span>
                     </Link>
                     <div className="w-px h-6 bg-white/10" />
-                    <span className="text-sm text-text-muted">Live Traffic Control Center</span>
+                    <span className="text-sm text-text-muted">Live Control Center</span>
                 </div>
-                <div className="flex items-center gap-2 bg-accent-green/10 border border-accent-green/20 rounded-full px-3 py-1.5">
-                    <StatusDot color="green" /><span className="font-mono text-xs text-text-secondary">LIVE · Updating every 2s</span>
-                </div>
-                <div className="flex items-center gap-5">
-                    {[['Active Corridors', '2', 'text-accent-green'], ['Nodes Online', '24/24', 'text-accent-cyan'], ['Alerts', '3', 'text-accent-red']].map(([l, v, c]) => (
+
+                {/* Center stats */}
+                <div className="flex items-center gap-6">
+                    {[['Active Corridors', '2', 'text-accent-green'], ['Nodes Online', '24/24', 'text-accent-cyan'], ['City Density', `${avgDensity}%`, 'text-accent-amber']].map(([l, v, c]) => (
                         <div key={l} className="flex flex-col items-center">
                             <span className="text-[0.62rem] text-text-muted uppercase tracking-wide">{l}</span>
                             <span className={`text-xl font-extrabold font-mono leading-tight ${c}`}>{v}</span>
                         </div>
                     ))}
+                </div>
+
+                <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 bg-accent-green/10 border border-accent-green/20 rounded-full px-3 py-1.5">
+                        <StatusDot color="green" /><span className="font-mono text-xs text-text-secondary">LIVE</span>
+                    </div>
                     <Link href="/portal" className="inline-flex gap-1.5 items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-gradient-to-br from-accent-cyan to-[#0099cc] text-black no-underline">🔒 Portal</Link>
                     <Link href="/" className="inline-flex gap-1.5 items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 border border-white/5 text-text-primary no-underline">← Home</Link>
                 </div>
             </header>
 
-            {/* Main 3-col grid */}
+            {/* Main 2-col layout */}
             <main className="flex flex-1 overflow-hidden relative z-10">
 
-                {/* LEFT SIDEBAR */}
-                <aside className="w-64 bg-[rgba(13,17,23,0.95)] border-r border-white/5 overflow-y-auto p-4 flex flex-col gap-5 flex-shrink-0">
-                    {/* Alerts */}
-                    <div>
-                        <div className="text-[0.7rem] font-bold uppercase tracking-widest text-text-muted border-b border-white/5 pb-1.5 mb-2">🚨 Active Alerts</div>
-                        <div className="flex flex-col gap-1.5">
-                            {alerts.slice(0, 4).map((a, i) => (
-                                <div key={i} className={`flex gap-2 p-2.5 rounded-lg border text-xs ${a.color === 'red' ? 'bg-[rgba(255,59,92,0.08)] border-accent-red/20' : a.color === 'amber' ? 'bg-[rgba(255,184,0,0.08)] border-accent-amber/20' : 'bg-[rgba(0,245,255,0.06)] border-accent-cyan/15'}`}>
-                                    <div className={`w-1.5 h-1.5 rounded-full mt-1 flex-shrink-0 ${a.color === 'red' ? 'bg-accent-red' : a.color === 'amber' ? 'bg-accent-amber' : 'bg-accent-cyan'}`} />
-                                    <div><div className="leading-snug">{a.msg}</div><div className="font-mono text-[0.65rem] text-text-muted mt-0.5">{a.time}</div></div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                    {/* City stats */}
-                    <div>
-                        <div className="text-[0.7rem] font-bold uppercase tracking-widest text-text-muted border-b border-white/5 pb-1.5 mb-2">📊 City-Wide Stats</div>
-                        <div className="flex flex-col">
-                            <StatRow label="Avg. Wait Time" value="8.3s" />
-                            <StatRow label="Total Vehicles" value="14,203" />
-                            <StatRow label="CO₂ Saved" value="2.4 tons" color="text-accent-green" />
-                            <StatRow label="Fuel Saved" value="1,840 L" color="text-accent-green" />
-                            <StatRow label="Emergency Trips" value="7 today" color="text-accent-red" />
-                            <StatRow label="Congestion Index" value="34%" color="text-accent-amber" />
-                        </div>
-                    </div>
-                    {/* Lane densities */}
-                    <div>
-                        <div className="text-[0.7rem] font-bold uppercase tracking-widest text-text-muted border-b border-white/5 pb-1.5 mb-2">🚗 Lane Density (Live)</div>
-                        <div className="flex flex-col gap-2.5">
-                            {LANES.map(({ idx, label }) => {
-                                const d = nodes[idx]?.density ?? 50;
-                                const c = d < 40 ? 'progress-fill-green' : d < 70 ? 'progress-fill-amber' : 'progress-fill-red';
-                                const tc = d < 40 ? 'text-accent-green' : d < 70 ? 'text-accent-amber' : 'text-accent-red';
-                                return (
-                                    <div key={label} className="flex items-center gap-2 text-[0.72rem] text-text-secondary">
-                                        <span className="w-[80px] flex-shrink-0 truncate">{label}</span>
-                                        <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden"><div className={`h-full rounded-full ${c} transition-all duration-700`} style={{ width: `${d}%` }} /></div>
-                                        <span className={`w-8 text-right font-bold ${tc}`}>{d}%</span>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                </aside>
-
-                {/* CENTER */}
-                <section className="flex-1 bg-bg-deep p-4 overflow-hidden flex flex-col relative">
+                {/* LEFT — Intersection Grid */}
+                <section className="flex-1 bg-bg-deep p-5 overflow-hidden flex flex-col relative">
                     <div className="flex justify-between items-center mb-4">
                         <div className="flex items-center gap-3">
-                            <h2 className="text-base font-bold">Intersection Grid — City View</h2>
-                            <Badge variant="cyan">24 Nodes</Badge>
+                            <h2 className="text-sm font-bold uppercase tracking-wide text-text-muted">Intersection Nodes</h2>
+                            <Badge variant="cyan">24 Active</Badge>
                         </div>
                         <div className="flex items-center gap-3 text-xs text-text-muted">
-                            {[['#00ff9d', 'Low <40%'], ['#ffb800', 'Med 40–70%'], ['#ff3b5c', 'High >70%']].map(([c, l]) => (
-                                <span key={l} className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ background: c }} />{l}</span>
+                            {[['#00ff9d', 'Low'], ['#ffb800', 'Med'], ['#ff3b5c', 'High']].map(([c, l]) => (
+                                <span key={l} className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: c }} />{l}</span>
                             ))}
                         </div>
                     </div>
-                    <div className="grid grid-cols-6 gap-2 overflow-y-auto">
+                    <div className="grid grid-cols-4 gap-2 overflow-y-auto flex-1">
                         {nodes.map(node => <IntNode key={node.id} node={node} onClick={setSelectedNode} />)}
                     </div>
                     {selectedNode && <NodeDetail node={selectedNode} onClose={() => setSelectedNode(null)} />}
                 </section>
 
                 {/* RIGHT SIDEBAR */}
-                <aside className="w-72 bg-[rgba(13,17,23,0.95)] border-l border-white/5 overflow-y-auto p-4 flex flex-col gap-5 flex-shrink-0">
-                    {/* Corridor tracker */}
-                    <div>
-                        <div className="text-[0.7rem] font-bold uppercase tracking-widest text-text-muted border-b border-white/5 pb-1.5 mb-2">🚑 Active Emergency Corridor</div>
-                        <div className="bg-[rgba(0,245,255,0.03)] border border-accent-cyan/15 rounded-xl p-3">
-                            <div className="flex flex-wrap gap-1.5 mb-3"><Badge variant="red">🚨 AMBULANCE · AMB-042</Badge><Badge variant="green">ACTIVE</Badge></div>
+                <aside className="w-72 bg-[rgba(13,17,23,0.96)] border-l border-white/5 overflow-y-auto flex flex-col flex-shrink-0">
+
+                    {/* Emergency Corridor */}
+                    <div className="p-4 border-b border-white/5">
+                        <div className="text-[0.68rem] font-bold uppercase tracking-widest text-text-muted mb-3">🚑 Active Corridor</div>
+                        <div className="bg-accent-cyan/[0.04] border border-accent-cyan/15 rounded-xl p-3.5">
+                            <div className="flex flex-wrap gap-1.5 mb-3"><Badge variant="red">AMB-042</Badge><Badge variant="green">ACTIVE</Badge></div>
                             <div className="text-xs font-semibold mb-1">📍 Sector 12 Accident Site</div>
-                            <div className="w-0.5 h-4 bg-gradient-to-b from-accent-green to-accent-cyan ml-2 my-1" />
+                            <div className="w-0.5 h-3 bg-gradient-to-b from-accent-green to-accent-cyan ml-2 my-1" />
                             <div className="text-xs font-semibold mb-3">🏥 City General Hospital</div>
-                            <div className="flex flex-col gap-1.5 mb-3">
-                                {[['green', 'Node 05 — Passed ✓', 'done'], ['green', 'Node 06 — Passed ✓', 'done'], ['cyan', 'Node 07 — 🚑 IN TRANSIT', 'active'], ['amber', 'Node 08 — Preparing ⏱', 'prep'], ['gray', 'Node 09 — Queued', 'pending']].map(([c, t, s]) => (
-                                    <div key={t} className={`flex items-center gap-2 text-xs py-1 ${s === 'active' ? 'text-accent-cyan font-bold' : s === 'prep' ? 'text-accent-amber' : 'text-text-muted'}`}>
-                                        <StatusDot color={c} />{t}
+                            <div className="flex flex-col gap-1 mb-3">
+                                {[['green', 'N-05 — Cleared ✓', 'done'], ['green', 'N-06 — Cleared ✓', 'done'], ['cyan', 'N-07 — In Transit 🚑', 'active'], ['amber', 'N-08 — Preparing', 'prep'], ['gray', 'N-09 — Queued', 'pending']].map(([c, t, s]) => (
+                                    <div key={t} className={`flex items-center gap-2 text-xs py-0.5 ${s === 'active' ? 'text-accent-cyan font-bold' : s === 'prep' ? 'text-accent-amber' : 'text-text-muted'}`}>
+                                        <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${s === 'done' ? 'bg-accent-green' : s === 'active' ? 'bg-accent-cyan animate-pulse' : s === 'prep' ? 'bg-accent-amber' : 'bg-white/20'}`} />{t}
                                     </div>
                                 ))}
                             </div>
-                            <div className="flex gap-4 pt-2 border-t border-white/5">
-                                {[['ETA', etaStr, 'text-accent-green'], ['Stops', '0', 'text-accent-green'], ['Speed', `${speed} km/h`, 'text-text-primary']].map(([l, v, c]) => (
-                                    <div key={l}><div className="text-[0.62rem] text-text-muted uppercase">{l}</div><div className={`font-bold font-mono text-sm ${c}`}>{v}</div></div>
+                            <div className="flex gap-4 pt-2.5 border-t border-white/5">
+                                {[['ETA', etaStr, 'text-accent-green'], ['Speed', `${speed} km/h`, 'text-white'], ['Stops', '0', 'text-accent-green']].map(([l, v, c]) => (
+                                    <div key={l}><div className="text-[0.6rem] text-text-muted uppercase">{l}</div><div className={`font-bold font-mono text-sm ${c}`}>{v}</div></div>
                                 ))}
                             </div>
                         </div>
                     </div>
 
-                    {/* Camera feeds */}
-                    <div>
-                        <div className="text-[0.7rem] font-bold uppercase tracking-widest text-text-muted border-b border-white/5 pb-1.5 mb-2">📷 Camera Feeds</div>
-                        <div className="flex flex-col gap-2.5">
-                            {/* Emergency camera */}
-                            <div>
-                                <div className="relative h-20 bg-[#050810] border border-accent-cyan/20 rounded-lg overflow-hidden">
-                                    <div className="absolute top-1.5 left-2 text-[0.6rem] text-accent-cyan font-mono z-10">CAM-07 · LIVE</div>
-                                    <div className="cam-detect-box">Ambulance · 97.2%</div>
-                                    <div className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent-cyan to-transparent animate-scan-fast opacity-50" />
-                                </div>
-                                <div className="flex justify-between items-center mt-1 text-xs text-text-secondary px-0.5"><span>Node 07 · MG Road</span><Badge variant="red" className="text-[0.6rem]">Override</Badge></div>
-                            </div>
-                            {/* Normal camera */}
-                            <div>
-                                <div className="relative h-20 bg-[#050810] border border-accent-green/20 rounded-lg overflow-hidden">
-                                    <div className="absolute top-1.5 left-2 text-[0.6rem] text-accent-green font-mono z-10">CAM-12 · LIVE</div>
-                                    <div className="absolute bottom-2 left-2 text-[0.62rem] text-accent-green font-mono">Cars ×8 · Bikes ×3</div>
-                                    <div className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent-green to-transparent animate-scan opacity-40" />
-                                </div>
-                                <div className="flex justify-between items-center mt-1 text-xs text-text-secondary px-0.5"><span>Node 12 · Outer Ring</span><Badge variant="green" className="text-[0.6rem]">Normal</Badge></div>
-                            </div>
-                            {/* Degraded */}
-                            <div>
-                                <div className="relative h-20 bg-[#0a0705] border border-accent-amber/30 rounded-lg overflow-hidden flex items-center justify-center">
-                                    <div className="absolute top-1.5 left-2 text-[0.6rem] text-accent-amber font-mono z-10">CAM-03 · DEGRADED</div>
-                                    <span className="text-[0.65rem] text-accent-amber mt-4">⚠ Signal Weak — Fallback Mode</span>
-                                </div>
-                                <div className="flex justify-between items-center mt-1 text-xs text-text-secondary px-0.5"><span>Node 03 · Airport</span><Badge variant="amber" className="text-[0.6rem]">Fallback</Badge></div>
-                            </div>
+                    {/* Lane density */}
+                    <div className="p-4 border-b border-white/5">
+                        <div className="text-[0.68rem] font-bold uppercase tracking-widest text-text-muted mb-3">🚗 Lane Density</div>
+                        <div className="flex flex-col gap-2">
+                            {LANES.map(({ idx, label }) => {
+                                const d = nodes[idx]?.density ?? 50;
+                                const c = d < 40 ? 'progress-fill-green' : d < 70 ? 'progress-fill-amber' : 'progress-fill-red';
+                                const tc = d < 40 ? 'text-accent-green' : d < 70 ? 'text-accent-amber' : 'text-accent-red';
+                                return (
+                                    <div key={label} className="flex items-center gap-2 text-xs text-text-secondary">
+                                        <span className="w-[85px] flex-shrink-0 truncate">{label}</span>
+                                        <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden"><div className={`h-full rounded-full ${c} transition-all duration-700`} style={{ width: `${d}%` }} /></div>
+                                        <span className={`w-8 text-right font-bold font-mono ${tc}`}>{d}%</span>
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
 
-                    {/* Chart */}
-                    <div>
-                        <div className="text-[0.7rem] font-bold uppercase tracking-widest text-text-muted border-b border-white/5 pb-1.5 mb-2">📈 Traffic Flow (Last 1h)</div>
+                    {/* City stats */}
+                    <div className="p-4 border-b border-white/5">
+                        <div className="text-[0.68rem] font-bold uppercase tracking-widest text-text-muted mb-3">📊 City Stats</div>
+                        <div className="grid grid-cols-2 gap-2">
+                            {[['Avg Wait', '8.3s', 'text-text-primary'], ['CO₂ Saved', '2.4 t', 'text-accent-green'], ['Fuel Saved', '1,840L', 'text-accent-green'], ['Congestion', `${avgDensity}%`, 'text-accent-amber']].map(([l, v, c]) => (
+                                <div key={l} className="bg-white/[0.03] border border-white/5 rounded-lg p-2.5">
+                                    <div className="text-[0.62rem] text-text-muted mb-1">{l}</div>
+                                    <div className={`text-sm font-bold font-mono ${c}`}>{v}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Traffic chart */}
+                    <div className="p-4 border-b border-white/5">
+                        <div className="text-[0.68rem] font-bold uppercase tracking-widest text-text-muted mb-3">📈 Flow (Last 1h)</div>
                         <FlowChart />
                     </div>
 
+                    {/* Camera feeds — simplified */}
+                    <div className="p-4 border-b border-white/5">
+                        <div className="text-[0.68rem] font-bold uppercase tracking-widest text-text-muted mb-3">📷 Camera Status</div>
+                        <div className="flex flex-col gap-2">
+                            {[['CAM-07', 'N-07 · MG Road', 'Override Active', 'red'], ['CAM-12', 'N-12 · Outer Ring', 'Normal', 'green'], ['CAM-03', 'N-03 · Airport', 'Signal Weak', 'amber']].map(([id, loc, status, color]) => (
+                                <div key={id} className="flex items-center gap-2.5 text-xs">
+                                    <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${color === 'red' ? 'bg-accent-red' : color === 'green' ? 'bg-accent-green' : 'bg-accent-amber'}`} />
+                                    <span className="font-mono text-[0.65rem] text-text-muted w-12 flex-shrink-0">{id}</span>
+                                    <span className="text-text-secondary flex-1 truncate">{loc}</span>
+                                    <Badge variant={color} className="text-[0.6rem] flex-shrink-0">{status}</Badge>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
                     {/* Quick actions */}
-                    <div>
-                        <div className="text-[0.7rem] font-bold uppercase tracking-widest text-text-muted border-b border-white/5 pb-1.5 mb-2">⚡ Quick Actions</div>
+                    <div className="p-4">
+                        <div className="text-[0.68rem] font-bold uppercase tracking-widest text-text-muted mb-3">⚡ Actions</div>
                         <div className="flex flex-col gap-2">
                             <Link href="/portal" className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-gradient-to-br from-accent-green to-[#00cc7a] text-black no-underline">🚑 New Green Corridor</Link>
                             <button onClick={simulateAlert} className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-white/5 border border-white/5 text-text-primary font-sans cursor-pointer hover:bg-white/10">🔔 Simulate Emergency</button>

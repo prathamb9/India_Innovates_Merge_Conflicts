@@ -355,7 +355,7 @@ export default function HomePage() {
                     <div>
                         {/* Badge */}
                         <div className="inline-flex items-center gap-2.5 bg-accent-cyan/10 border border-accent-cyan/20 rounded-full px-4 py-2 mb-6 text-sm text-text-secondary">
-                            <StatusDot color="green" /><span>FLOW-AI Engine — Online</span><Badge variant="cyan">v1.0</Badge>
+                            <StatusDot color="green" /><span>AI Traffic System — Active</span><Badge variant="cyan">v1.0</Badge>
                         </div>
                         <h1 className="text-5xl font-black leading-[1.05] tracking-[-1.5px] mb-5 animate-fade-in-up">
                             Intelligent Traffic<br />That <span className="grad-text">Saves Lives</span><br />in Real Time
@@ -415,9 +415,9 @@ export default function HomePage() {
                     <h2 className="text-4xl font-extrabold tracking-tight mb-3">Three-Pillar <span className="grad-text">Architecture</span></h2>
                     <p className="text-text-secondary mb-12 max-w-xl">AURA-GRID operates on three synergistic layers, each solving a distinct failure mode of traditional traffic systems.</p>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <PillarCard letter="A" badge="Pillar A" variant="cyan" title="AI Vision & Dynamic Density Processing" desc="Virtual zones mapped over live camera feeds. YOLOv8 counts every vehicle in real time and dynamically allocates green time proportional to density — never wasting a second on empty lanes." features={['Base minimum 15s for pedestrian safety', 'Proportional time added per vehicle density', 'Real-time Google Maps density overlay for commuters']} tags={['YOLOv8', 'OpenCV', 'WebSocket']} />
-                        <PillarCard letter="B" badge="Pillar B" variant="green" title="Direct Visual Failsafe (Camera Override)" desc="Edge-AI processes video locally — no GPS required. Detects ambulance shape, color patterns, and strobe frequencies. Triggers a safe 3-second yellow clearance before flipping the corridor green." features={['Works without cloud or GPS connectivity', 'Safety Buffer: 3s yellow → red → green sequence', 'Detects flashing strobe frequency signatures']} tags={['Edge AI', 'PyTorch', '97%+ Conf.']} />
-                        <PillarCard letter="C" badge="Pillar C" variant="violet" title="Verified Green Corridor Portal & Preemption" desc="RBAC-secured web portal for hospital dispatchers and security chiefs. Uses predictive preemption to begin altering a signal cycle 30 seconds before the vehicle arrives — creating a zero-stop green wave." features={['Role-Based Access Control (hospital, police, VVIP)', 'Predictive preemption — starts 30s in advance', 'Full audit log: timestamp, user ID, GPS track']} tags={['RBAC + MFA', 'FastAPI', 'React.js']} />
+                        <PillarCard letter="A" badge="Pillar A" variant="cyan" title="AI Vision & Dynamic Signal Control" desc="YOLOv8 cameras count vehicles in real time and allocate green time proportionally — never wasting a cycle on an empty lane." features={['Real-time vehicle density detection', 'Dynamic green time allocation', 'Live Google Maps density overlay']} tags={['YOLOv8', 'OpenCV', 'WebSocket']} />
+                        <PillarCard letter="B" badge="Pillar B" variant="green" title="Visual Failsafe — Camera Override" desc="Edge-AI detects ambulance shape, color, and strobes locally. No GPS or portal needed — triggers a 3-second safe clearance automatically." features={['Works offline, no cloud needed', '3s yellow → red → green sequence', '97%+ detection confidence']} tags={['Edge AI', 'PyTorch', 'Offline']} />
+                        <PillarCard letter="C" badge="Pillar C" variant="violet" title="Verified Green Corridor Portal" desc="Secure dispatcher portal for hospitals and security chiefs to initiate a zero-stop green wave — preempting signals 30 seconds ahead." features={['RBAC + MFA access control', 'Predictive 30s preemption', 'Immutable session audit trail']} tags={['RBAC + MFA', 'FastAPI', 'React.js']} />
                     </div>
                 </div>
             </section>
@@ -428,95 +428,63 @@ export default function HomePage() {
 
             <div className="g-divider" />
 
-            {/* TECH ARCHITECTURE */}
-            <section id="tech" className="relative z-10 py-24">
-                <div className="max-w-[1200px] mx-auto px-10">
-                    <div className="flex items-center gap-2 mb-4 text-accent-cyan text-xs font-bold uppercase tracking-widest"><span className="w-5 h-0.5 bg-accent-cyan rounded-full" />Technical Depth</div>
-                    <h2 className="text-4xl font-extrabold tracking-tight mb-12">Mathematical & <span className="grad-text">System Architecture</span></h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Formula */}
-                        <div className="bg-bg-card border border-white/5 rounded-xl p-9">
-                            <h3 className="text-lg font-bold mb-2">Dynamic Routing Algorithm</h3>
-                            <p className="text-text-secondary text-sm mb-6">Custom A* / Dijkstra's graph traversal with live AI-weighted edges:</p>
-                            <div className="formula-box mb-6">
-                                <div className="font-mono text-lg leading-loose">
-                                    <span className="text-accent-cyan">w(u,v)</span><span className="text-text-secondary"> = </span>
-                                    <span className="text-accent-violet">α</span><span>·d(u,v)</span>
-                                    <span className="text-text-secondary"> + </span>
-                                    <span className="text-accent-violet">β</span><span>·ρ(u,v)</span>
-                                    <span className="text-text-secondary"> + </span>
-                                    <span className="text-accent-violet">γ</span><span>·s(u,v)</span>
-                                </div>
-                            </div>
-                            <div className="flex flex-col gap-2.5">
-                                {[['text-accent-green', 'd(u,v)', 'Physical distance between intersections u and v'], ['text-accent-amber', 'ρ(u,v)', 'Live vehicle density from YOLO camera'], ['text-accent-red', 's(u,v)', 'Signal phase penalty (current red/green state)'], ['text-[#a78bfa]', 'α,β,γ', 'Tunable weights — β & γ heavily prioritized for emergencies']].map(([c, v, l]) => (
-                                    <div key={v} className="flex items-center gap-3 text-sm text-text-secondary"><span className={`font-mono font-bold min-w-[70px] ${c}`}>{v}</span>{l}</div>
-                                ))}
-                            </div>
-                        </div>
-                        {/* Stack */}
-                        <div className="bg-bg-card border border-white/5 rounded-xl p-9">
-                            <h3 className="text-lg font-bold mb-6">Full Stack Breakdown</h3>
-                            <div className="flex flex-col gap-5">
-                                {[
-                                    { color: 'text-accent-cyan', layer: 'Frontend / UI', tags: ['cyan', 'React.js', 'Streamlit', 'Google Maps JS API'] },
-                                    { color: 'text-accent-green', layer: 'Backend', tags: ['green', 'FastAPI', 'Node.js', 'WebSockets'] },
-                                    { color: 'text-accent-amber', layer: 'Machine Learning', tags: ['amber', 'YOLOv8', 'PyTorch', 'OpenCV'] },
-                                    { color: 'text-[#a78bfa]', layer: 'APIs & Security', tags: ['violet', 'Google Maps Directions', 'RBAC + MFA', 'JWT Auth'] },
-                                ].map(({ color, layer, tags: [v, ...ts] }) => (
-                                    <div key={layer}>
-                                        <div className={`text-xs font-bold uppercase tracking-wide mb-2 ${color}`}>{layer}</div>
-                                        <div className="flex flex-wrap gap-1.5">{ts.map(t => <Badge key={t} variant={v}>{t}</Badge>)}</div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                    {/* System flow diagram */}
-                    <div className="bg-bg-card border border-white/5 rounded-xl p-9 mt-6">
-                        <h3 className="text-center text-base text-text-secondary mb-6">End-to-End System Data Flow</h3>
-                        <div className="flex flex-col items-center gap-2">
-                            {[['📷', 'CCTV / Edge Camera'], ['🤖', 'YOLO AI Engine'], ['⚡', 'FastAPI Backend']].map(([ic, lb], i, a) => (
-                                <div key={lb} className="flex flex-col items-center">
-                                    <div className="bg-bg-surface border border-white/5 rounded-xl px-6 py-3.5 text-center min-w-[160px] hover:border-accent-cyan/30 transition-all"><div className="text-2xl mb-1">{ic}</div><div className="text-sm font-semibold">{lb}</div></div>
-                                    {i < a.length - 1 && <div className="text-2xl text-accent-cyan my-1">↓</div>}
-                                </div>
-                            ))}
-                            <div className="text-4xl text-accent-cyan my-2">⇓</div>
-                            <div className="flex gap-5 flex-wrap justify-center">
-                                {[['🗺️', 'Public Map'], ['🚦', 'Signal Controller'], ['🔒', 'Green Portal']].map(([ic, lb]) => (
-                                    <div key={lb} className="bg-bg-surface border border-white/5 rounded-xl px-6 py-3.5 text-center min-w-[130px] hover:border-accent-cyan/30 transition-all"><div className="text-2xl mb-1">{ic}</div><div className="text-sm font-semibold">{lb}</div></div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
 
-            <div className="g-divider" />
 
             <FaqSection />
 
             <div className="g-divider" />
 
-            {/* CTA */}
-            <section className="relative z-10 py-20 text-center">
-                <div className="max-w-[1200px] mx-auto px-10">
-                    <div className="flex items-center justify-center gap-2 mb-4 text-accent-cyan text-xs font-bold uppercase tracking-widest"><span className="w-5 h-0.5 bg-accent-cyan rounded-full" />Ready to Deploy</div>
-                    <h2 className="text-4xl font-extrabold tracking-tight mb-4">Experience <span className="grad-text">AURA-GRID</span> Live</h2>
-                    <p className="text-text-secondary max-w-md mx-auto mb-9">Explore the real-time dashboard or initiate a simulated green corridor from our secure dispatcher portal.</p>
-                    <div className="flex gap-4 justify-center flex-wrap">
-                        <Link href="/dashboard" className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-base font-bold bg-gradient-to-br from-accent-cyan to-[#0099cc] text-black shadow-[0_0_20px_rgba(0,245,255,0.3)] hover:shadow-[0_0_30px_rgba(0,245,255,0.6)] hover:-translate-y-px transition-all no-underline">🖥 Launch Dashboard</Link>
-                        <Link href="/portal" className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-base font-bold bg-white/5 border border-white/5 hover:bg-white/10 hover:-translate-y-px transition-all no-underline text-text-primary">🔒 Green Corridor Portal</Link>
+            {/* FOOTER */}
+            <footer className="relative z-10 border-t border-white/5 bg-[rgba(13,17,23,0.6)] backdrop-blur-xl">
+                <div className="max-w-[1200px] mx-auto px-10 py-14 grid grid-cols-1 md:grid-cols-4 gap-10">
+                    {/* Brand */}
+                    <div className="md:col-span-1">
+                        <Link href="/" className="flex items-center gap-2.5 font-extrabold text-xl no-underline text-white mb-3">
+                            <div className="w-9 h-9 rounded-[6px] bg-gradient-to-br from-accent-cyan to-accent-violet flex items-center justify-center neon-cyan">⬡</div>
+                            <span><span className="text-accent-cyan">AURA</span>-GRID</span>
+                        </Link>
+                        <p className="text-text-muted text-xs leading-relaxed mb-4">AI-powered intelligent traffic management. Saving lives, securing convoys, reducing congestion.</p>
+                        <div className="flex items-center gap-2"><StatusDot color="green" /><span className="text-xs text-text-secondary">All Systems Operational</span></div>
+                    </div>
+                    {/* Emergency Contacts */}
+                    <div>
+                        <div className="text-[0.7rem] font-bold uppercase tracking-widest text-text-muted mb-4">🚨 Emergency Contacts</div>
+                        <div className="flex flex-col gap-2.5">
+                            {[['🚑 Ambulance (National)', '102'], ['🚒 Fire Brigade', '101'], ['👮 Police', '100'], ['🏥 AIIMS Delhi', '011-2658-8500'], ['🚑 GVK EMRI', '108']].map(([l, v]) => (
+                                <div key={l} className="flex justify-between items-center text-xs border-b border-white/5 pb-2">
+                                    <span className="text-text-secondary">{l}</span>
+                                    <span className="font-mono font-bold text-accent-green">{v}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    {/* Cities */}
+                    <div>
+                        <div className="text-[0.7rem] font-bold uppercase tracking-widest text-text-muted mb-4">🏙️ Target Cities</div>
+                        <div className="grid grid-cols-2 gap-1.5">
+                            {['Mumbai', 'Delhi', 'Bengaluru', 'Hyderabad', 'Chennai', 'Pune', 'Kolkata', 'Ahmedabad'].map(c => (
+                                <div key={c} className="flex items-center gap-1.5 text-xs text-text-secondary hover:text-accent-cyan transition-colors cursor-default">
+                                    <span className="w-1 h-1 rounded-full bg-accent-cyan/50" />{c}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    {/* Quick Links */}
+                    <div>
+                        <div className="text-[0.7rem] font-bold uppercase tracking-widest text-text-muted mb-4">🔗 Quick Access</div>
+                        <div className="flex flex-col gap-2">
+                            <Link href="/dashboard" className="text-xs text-text-secondary hover:text-accent-cyan no-underline transition-colors">🖥 Live Dashboard</Link>
+                            <Link href="/portal" className="text-xs text-text-secondary hover:text-accent-cyan no-underline transition-colors">🔒 Green Corridor Portal</Link>
+                            <a href="#pillars" className="text-xs text-text-secondary hover:text-accent-cyan no-underline transition-colors">🏗 Three-Pillar Solution</a>
+                            <a href="#flows" className="text-xs text-text-secondary hover:text-accent-cyan no-underline transition-colors">🚶 User Journeys</a>
+                            <a href="#faq" className="text-xs text-text-secondary hover:text-accent-cyan no-underline transition-colors">❓ Edge Cases & FAQ</a>
+                        </div>
                     </div>
                 </div>
-            </section>
-
-            {/* Footer */}
-            <footer className="px-10 py-6 border-t border-white/5 flex justify-between items-center relative z-10 flex-wrap gap-4">
-                <Link href="/" className="flex items-center gap-2.5 font-extrabold text-lg no-underline text-white"><div className="w-8 h-8 rounded-[6px] bg-gradient-to-br from-accent-cyan to-accent-violet flex items-center justify-center neon-cyan">⬡</div><span><span className="text-accent-cyan">AURA</span>-GRID / FLOW-AI</span></Link>
-                <div className="text-xs text-text-muted">Prototype v1.0 · Smart City Innovation Challenge · 2026</div>
-                <div className="flex items-center gap-2"><StatusDot color="green" /><span className="text-sm text-text-secondary">All Systems Operational</span></div>
+                <div className="border-t border-white/5 px-10 py-4 flex justify-between items-center flex-wrap gap-3">
+                    <span className="text-[0.7rem] text-text-muted">© 2026 AURA-GRID / FLOW-AI · Smart City Innovation Challenge · Prototype v1.0</span>
+                    <span className="text-[0.7rem] text-text-muted">Built with Next.js · React · Tailwind CSS</span>
+                </div>
             </footer>
         </>
     );
