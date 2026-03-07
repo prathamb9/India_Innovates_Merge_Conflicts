@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
 import Badge from '@/components/Badge';
 import StatusDot from '@/components/StatusDot';
+import CorridorStatusBox from '@/components/CorridorStatusBox';
 
 /* ── Node data ── */
 const INITIAL_NODES = [
@@ -138,6 +139,9 @@ function CorridorCard({ corridor, onTerminate }) {
     const mins = Math.floor(elapsed / 60);
     const secs = (elapsed % 60).toString().padStart(2, '0');
 
+    const nodes = corridor.corridorNodes || [];
+    const activeNodeIdx = corridor.activeNodeIdx || 0;
+
     return (
         <div className="bg-accent-cyan/[0.04] border border-accent-cyan/25 rounded-2xl p-4 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-accent-cyan/10 blur-2xl pointer-events-none" />
@@ -168,20 +172,51 @@ function CorridorCard({ corridor, onTerminate }) {
                 <span className="text-xs text-text-secondary truncate">{corridor.dest || 'Destination'}</span>
             </div>
 
-            <div className="flex gap-4 pt-3 border-t border-white/5 mb-3">
-                {[['Distance', corridor.distance || '—'], ['ETA', corridor.duration || '—'], ['Signals', 'Preempted']].map(([l, v]) => (
-                    <div key={l}>
-                        <div className="text-[0.55rem] text-text-muted uppercase tracking-wide">{l}</div>
-                        <div className="text-sm font-bold font-mono text-accent-cyan">{v}</div>
-                    </div>
-                ))}
-            </div>
+            {/* Live intersection status box */}
+            {nodes.length > 0 && (
+                <div className="mb-3">
+                    <CorridorStatusBox
+                        nodes={nodes}
+                        activeIdx={activeNodeIdx}
+                        eta={corridor.duration || '—'}
+                        stops={0}
+                    />
+                </div>
+            )}
 
             {/* View real-time updates in Portal */}
             <Link href={`/portal?corridorId=${corridor.id}`} className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-xs font-semibold bg-white/5 border border-white/10 text-text-primary no-underline hover:border-accent-cyan/30 hover:text-accent-cyan transition-all">
                 🗺 View Real-Time Updates in Portal →
             </Link>
         </div>
+    );
+}
+
+/* ── Demo Corridor Status (auto-animates) ── */
+const DEMO_NODES = [
+    { id: 'DWK', name: 'Dwarka Sector 12' },
+    { id: 'DWM', name: 'Dwarka Mor Chowk' },
+    { id: 'DHK', name: 'Dhaula Kuan Flyover' },
+    { id: 'AIM', name: 'AIIMS New Delhi' },
+    { id: 'LPN', name: 'Lajpat Nagar' },
+];
+
+function DemoCorridorStatus({ etaStr }) {
+    const [activeIdx, setActiveIdx] = useState(0);
+    useEffect(() => {
+        // Advance one node every 8 seconds to demo the animation
+        const t = setInterval(() => {
+            setActiveIdx(i => (i + 1) % DEMO_NODES.length);
+        }, 8000);
+        return () => clearInterval(t);
+    }, []);
+    return (
+        <CorridorStatusBox
+            nodes={DEMO_NODES}
+            activeIdx={activeIdx}
+            eta={etaStr}
+            stops={0}
+        />
     );
 }
 
@@ -408,20 +443,15 @@ export default function DashboardPage() {
                         <div className="text-[0.65rem] font-bold uppercase tracking-widest text-text-muted mb-4">🚑 Demo Corridor</div>
                         <div className="bg-accent-cyan/[0.04] border border-accent-cyan/15 rounded-xl p-4">
                             <div className="flex flex-wrap gap-1.5 mb-3"><Badge variant="red">AMB-042</Badge><Badge variant="green">ACTIVE</Badge></div>
-                            <div className="text-xs font-semibold mb-1">📍 Sector 12 Accident Site</div>
+                            <div className="text-xs font-semibold mb-1">📍 Dwarka Sector 12</div>
                             <div className="w-0.5 h-3 bg-gradient-to-b from-accent-green to-accent-cyan ml-2 my-1.5" />
-                            <div className="text-xs font-semibold mb-4">🏥 City General Hospital</div>
+                            <div className="text-xs font-semibold mb-3">🏥 AIIMS New Delhi</div>
 
-                            <div className="space-y-1.5 mb-4">
-                                {[['N-05 — Cleared ✓', 'done'], ['N-06 — Cleared ✓', 'done'], ['N-07 — In Transit 🚑', 'active'], ['N-08 — Preparing', 'prep'], ['N-09 — Queued', 'pending']].map(([t, s]) => (
-                                    <div key={t} className={`flex items-center gap-2 text-xs py-0.5 ${s === 'active' ? 'text-accent-cyan font-bold' : s === 'prep' ? 'text-accent-amber' : 'text-text-muted'}`}>
-                                        <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${s === 'done' ? 'bg-accent-green' : s === 'active' ? 'bg-accent-cyan animate-pulse' : s === 'prep' ? 'bg-accent-amber' : 'bg-white/20'}`} />{t}
-                                    </div>
-                                ))}
-                            </div>
+                            {/* Demo CorridorStatusBox with animated index */}
+                            <DemoCorridorStatus etaStr={etaStr} />
 
-                            <div className="flex gap-5 pt-3 border-t border-white/5">
-                                {[['ETA', etaStr, 'text-accent-green'], ['Speed', `${speed} km/h`, 'text-white'], ['Stops', '0', 'text-accent-green']].map(([l, v, c]) => (
+                            <div className="flex gap-5 pt-3 border-t border-white/5 mt-3">
+                                {[['Speed', `${speed} km/h`, 'text-white'], ['Stops', '0', 'text-accent-green']].map(([l, v, c]) => (
                                     <div key={l}><div className="text-[0.58rem] text-text-muted uppercase">{l}</div><div className={`font-bold font-mono text-sm ${c}`}>{v}</div></div>
                                 ))}
                             </div>

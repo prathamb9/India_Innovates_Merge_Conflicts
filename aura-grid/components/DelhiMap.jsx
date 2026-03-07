@@ -60,15 +60,21 @@ const DARK_STYLE = [
 const MAP_STYLE = { height: '100%', width: '100%' };
 
 // ─── Moving ambulance ─────────────────────────────────────────────────────────
-function MovingAmbulance({ path, active, onNodeUpdate, totalNodes }) {
+function MovingAmbulance({ path, active, onNodeUpdate, totalNodes, onNodeAdvance, nodeCount }) {
     const [pos, setPos] = useState(path[0] || { lat: 28.59, lng: 77.12 });
     const timer = useRef(null);
     const idx = useRef(0);
+    const lastNodeFired = useRef(-1);
 
     useEffect(() => {
         if (!active || !path.length) return;
         idx.current = 0;
+        lastNodeFired.current = -1;
         setPos(path[0]);
+        // Fire node 0 immediately
+        if (onNodeAdvance) onNodeAdvance(0);
+        lastNodeFired.current = 0;
+
         const step = () => {
             if (idx.current >= path.length - 1) {
                 onNodeUpdate && onNodeUpdate(totalNodes);
@@ -76,6 +82,20 @@ function MovingAmbulance({ path, active, onNodeUpdate, totalNodes }) {
             }
             idx.current++;
             setPos(path[idx.current]);
+
+            // Fire onNodeAdvance when ambulance crosses each node threshold
+            if (onNodeAdvance && nodeCount > 1) {
+                const fraction = idx.current / (path.length - 1);
+                const nodeIdx = Math.min(
+                    Math.floor(fraction * nodeCount),
+                    nodeCount - 1
+                );
+                if (nodeIdx > lastNodeFired.current) {
+                    lastNodeFired.current = nodeIdx;
+                    onNodeAdvance(nodeIdx);
+                }
+            }
+
             timer.current = setTimeout(step, 60);
         };
         timer.current = setTimeout(step, 60);
@@ -83,11 +103,11 @@ function MovingAmbulance({ path, active, onNodeUpdate, totalNodes }) {
     }, [active, path]);
 
     const icon = {
-        path: 'M -1,-4 L 1,-4 L 1,-1 L 4,-1 L 4,1 L 1,1 L 1,4 L -1,4 L -1,1 L -4,1 L -4,-1 L -1,-1 Z',
-        fillColor: '#00f5ff', fillOpacity: 1,
-        strokeColor: '#0a0f1e', strokeWeight: 1, scale: 2.5,
+        path: 'M -2,-5 L 2,-5 L 2,-2 L 5,-2 L 5,2 L 2,2 L 2,5 L -2,5 L -2,2 L -5,2 L -5,-2 L -2,-2 Z',
+        fillColor: '#00ff9d', fillOpacity: 1,
+        strokeColor: '#0a0f1e', strokeWeight: 1.5, scale: 3,
     };
-    return <Marker position={pos} icon={icon} zIndex={1000} />;
+    return <Marker position={pos} icon={icon} zIndex={1000} title="🚑 Ambulance" />;
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -100,6 +120,8 @@ function MovingAmbulance({ path, active, onNodeUpdate, totalNodes }) {
 //   destName       – string (display)
 //   onRouteResult  – callback({ distanceText, durationText, durationSec })
 //   onNodeUpdate   – callback(n)
+//   onNodeAdvance  – callback(nodeIdx) — fires as ambulance crosses each corridor node
+//   corridorNodeCount – number of corridor nodes (for fraction calculation)
 export default function DelhiMap({
     showCorridor,
     corridorActive,
@@ -109,6 +131,8 @@ export default function DelhiMap({
     destName,
     onRouteResult,
     onNodeUpdate,
+    onNodeAdvance,
+    corridorNodeCount = 0,
 }) {
     const { isLoaded, loadError } = useJsApiLoader({
         id: 'google-map-script',
@@ -233,7 +257,9 @@ export default function DelhiMap({
                         path={routePath}
                         active={corridorActive}
                         onNodeUpdate={onNodeUpdate}
-                        totalNodes={0}
+                        totalNodes={corridorNodeCount}
+                        onNodeAdvance={onNodeAdvance}
+                        nodeCount={corridorNodeCount}
                     />
                 )}
             </GoogleMap>

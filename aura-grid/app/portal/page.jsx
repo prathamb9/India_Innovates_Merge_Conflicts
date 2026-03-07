@@ -5,8 +5,9 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import Badge from '@/components/Badge';
 import StatusDot from '@/components/StatusDot';
+import CorridorStatusBox from '@/components/CorridorStatusBox';
 import { useJsApiLoader, Autocomplete } from '@react-google-maps/api';
-import { MAPS_LIBRARIES } from '@/components/DelhiMap';
+import { MAPS_LIBRARIES, DELHI_NODES } from '@/components/DelhiMap';
 import { useAuth } from '@/components/AuthProvider';
 import { createCorridor, terminateCorridor, subscribeActiveCOrridors } from '@/lib/firestore';
 
@@ -29,6 +30,36 @@ const CITIES = [
     { name: 'Kolkata', bounds: { north: 22.639, south: 22.395, east: 88.430, west: 88.246 } },
     { name: 'Ahmedabad', bounds: { north: 23.121, south: 22.922, east: 72.705, west: 72.490 } },
 ];
+
+// ── Pick the N DELHI_NODES geographically closest to the route midpoints ──────
+function pickCorridorNodes(originLatLng, destLatLng, count = 5) {
+    if (!originLatLng || !destLatLng) return [];
+
+    // Build evenly-spaced waypoints along the straight-line route
+    const waypoints = [];
+    for (let i = 0; i <= count + 1; i++) {
+        const t = i / (count + 1);
+        waypoints.push({
+            lat: originLatLng.lat + (destLatLng.lat - originLatLng.lat) * t,
+            lng: originLatLng.lng + (destLatLng.lng - originLatLng.lng) * t,
+        });
+    }
+
+    // For each waypoint, pick the closest Delhi node not already used
+    const used = new Set();
+    const picked = [];
+    for (const wp of waypoints.slice(1, -1)) {
+        let best = null, bestDist = Infinity;
+        for (const node of DELHI_NODES) {
+            if (used.has(node.id)) continue;
+            const d = Math.hypot(node.pos[0] - wp.lat, node.pos[1] - wp.lng);
+            if (d < bestDist) { bestDist = d; best = node; }
+        }
+        if (best) { used.add(best.id); picked.push(best); }
+    }
+
+    return picked.slice(0, count);
+}
 
 function PlaceInput({ label, placeholder, onPlaceSelect, cityBounds, keyId }) {
     const acRef = useRef(null);
@@ -85,6 +116,10 @@ export default function PortalPage() {
     const [etaSec, setEtaSec] = useState(0);
     const [dupError, setDupError] = useState('');
 
+    // ── Corridor node state ──────────────────────────────────────────────────
+    const [corridorNodes, setCorridorNodes] = useState([]);   // [{id, name}]
+    const [activeNodeIdx, setActiveNodeIdx] = useState(0);
+
     // All active corridors from Firestore (all cities)
     useEffect(() => {
         const unsub = subscribeActiveCOrridors(setActiveCds);
@@ -103,17 +138,32 @@ export default function PortalPage() {
         setEtaSec(info.durationSec || 0);
     }, []);
 
+    // ── Callback fired by DelhiMap as ambulance crosses each node ──────────
+    const handleNodeAdvance = useCallback((nodeIdx) => {
+        setActiveNodeIdx(nodeIdx);
+        // Persist to localStorage so dashboard can read it
+        try {
+            const raw = localStorage.getItem('aura_active_corridors');
+            const corridors = raw ? JSON.parse(raw) : [];
+            if (corridors.length > 0) {
+                corridors[0].activeNodeIdx = nodeIdx;
+                localStorage.setItem('aura_active_corridors', JSON.stringify(corridors));
+            }
+        } catch { }
+    }, []);
+
     function resetRoute() {
         setOriginLatLng(null); setDestLatLng(null);
         setOriginName(''); setDestName('');
         setShowCorridor(false); setCorridorActive(false);
         setRouteInfo(null); setDupError('');
+        setCorridorNodes([]); setActiveNodeIdx(0);
     }
 
     function calcRoute() {
         if (!originLatLng || !destLatLng) return;
         setCalculating(true);
-        setTimeout(() => { setCalculating(false); setShowCorridor(true); setCorridorActive(false); }, 600);
+        setTimeout(() => { setCalculating(false); setShowCorridor(true); setCorridorActive(false); setRouteInfo(null); setDupError(''); }, 600);
     }
 
     async function initiateWave() {
@@ -124,7 +174,6 @@ export default function PortalPage() {
             ? adminVehicle.trim().toUpperCase()
             : (userProfile?.vehicleNumber || 'N/A');
 
-        // Check if same vehicle number is already active
         const sameVehicleActive = activeCds.find(
             c => c.vehicleNumber === vehicleNum && c.city === city
         );
@@ -133,7 +182,6 @@ export default function PortalPage() {
             return;
         }
 
-        // Check if same route (same origin + destination) is already active in same city
         const sameRouteActive = activeCds.find(
             c => c.city === city &&
                 c.originName === originName &&
@@ -146,8 +194,14 @@ export default function PortalPage() {
 
         setDupError('');
         setCreating(true);
+
+        // ── Compute corridor nodes ───────────────────────────────────
+        const nodes = pickCorridorNodes(originLatLng, destLatLng, 5);
+        setCorridorNodes(nodes);
+        setActiveNodeIdx(0);
+
         try {
-            await createCorridor(user.uid, {
+            const docRef = await createCorridor(user.uid, {
                 creatorName: userProfile?.name || user.email,
                 vehicleNumber: vehicleNum,
                 vehicleType: corridorType,
@@ -158,7 +212,27 @@ export default function PortalPage() {
                 destLatLng,
                 distanceText: routeInfo?.distanceText || '',
                 durationText: routeInfo?.durationText || '',
+                corridorNodes: nodes.map(n => ({ id: n.id, name: n.name })),
             });
+
+            // Persist to localStorage for dashboard
+            try {
+                const existing = localStorage.getItem('aura_active_corridors');
+                const arr = existing ? JSON.parse(existing) : [];
+                arr.unshift({
+                    id: docRef.id,
+                    vehicleId: vehicleNum,
+                    origin: originName,
+                    dest: destName,
+                    distance: routeInfo?.distanceText || '',
+                    duration: routeInfo?.durationText || '',
+                    corridorType,
+                    corridorNodes: nodes.map(n => ({ id: n.id, name: n.name })),
+                    activeNodeIdx: 0,
+                });
+                localStorage.setItem('aura_active_corridors', JSON.stringify(arr));
+            } catch { }
+
             setCorridorActive(true);
         } catch (err) {
             console.error('Failed to create corridor:', err);
@@ -324,16 +398,25 @@ export default function PortalPage() {
                                                     {creating ? 'Activating...' : 'Initiate Green Wave'}
                                                 </button>
                                             ) : (
-                                                <div className="bg-accent-green/5 border border-accent-green/30 rounded-xl p-4">
-                                                    <div className="flex items-center gap-2 mb-3">
-                                                        <span className="w-2 h-2 rounded-full bg-accent-green animate-pulse" />
+                                                /* ── ACTIVE CORRIDOR — show CorridorStatusBox ── */
+                                                <div className="flex flex-col gap-4">
+                                                    {/* Pulse header */}
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="w-2.5 h-2.5 rounded-full bg-accent-green animate-pulse" />
                                                         <span className="text-sm font-bold text-accent-green">GREEN WAVE ACTIVE</span>
+                                                        <span className="ml-auto text-xs font-mono text-accent-cyan">{etaStr}</span>
                                                     </div>
-                                                    <div className="grid grid-cols-3 gap-3 mb-3">
-                                                        {[['ETA', etaStr, 'text-accent-green'], ['Stops', '0', 'text-accent-green'], ['Distance', routeInfo?.distanceText || '—', 'text-accent-cyan']].map(([l, v, c]) => (
-                                                            <div key={l}><div className="text-[0.65rem] text-text-muted uppercase tracking-wide mb-0.5">{l}</div><div className={`font-bold font-mono ${c}`}>{v}</div></div>
-                                                        ))}
-                                                    </div>
+
+                                                    {/* Live corridor node status */}
+                                                    {corridorNodes.length > 0 && (
+                                                        <CorridorStatusBox
+                                                            nodes={corridorNodes}
+                                                            activeIdx={activeNodeIdx}
+                                                            eta={etaStr}
+                                                            stops={0}
+                                                        />
+                                                    )}
+
                                                     {/* GPS Navigate for active corridor */}
                                                     <button onClick={() => openNavigation(originLatLng, destLatLng)}
                                                         className="w-full py-2.5 rounded-xl font-bold text-sm bg-[#4285F4] text-white hover:bg-[#1a73e8] transition-all font-sans cursor-pointer flex items-center justify-center gap-2">
@@ -347,7 +430,7 @@ export default function PortalPage() {
                                         /* Not logged in — invite to sign in for corridor creation */
                                         <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4 text-center">
                                             <div className="text-sm font-semibold mb-1">Want a Green Corridor?</div>
-                                            <p className="text-text-muted text-xs mb-3">Sign in to activate a priority green signal corridor for ambulances, fire trucks & VVIP convoys.</p>
+                                            <p className="text-text-muted text-xs mb-3">Sign in to activate a priority green signal corridor for ambulances, fire trucks &amp; VVIP convoys.</p>
                                             <div className="flex gap-2 justify-center">
                                                 <Link href="/auth/login" className="px-4 py-2 rounded-xl font-bold text-sm bg-accent-green text-black no-underline">Sign In</Link>
                                                 <Link href="/auth/register" className="px-4 py-2 rounded-xl font-bold text-sm bg-white/5 border border-white/10 text-white no-underline">Register</Link>
@@ -374,7 +457,11 @@ export default function PortalPage() {
                             <DelhiMap showCorridor={showCorridor} corridorActive={corridorActive}
                                 originLatLng={originLatLng} destLatLng={destLatLng}
                                 originName={originName} destName={destName}
-                                onRouteResult={handleRouteResult} onNodeUpdate={() => { }} />
+                                onRouteResult={handleRouteResult}
+                                onNodeUpdate={() => { }}
+                                onNodeAdvance={handleNodeAdvance}
+                                corridorNodeCount={corridorNodes.length}
+                            />
                         </div>
 
                         {/* Active corridors — THIS CITY ONLY */}
@@ -406,7 +493,6 @@ export default function PortalPage() {
                                                         <span className="text-[0.65rem] text-text-muted capitalize border border-white/10 rounded-full px-2 py-0.5">{c.vehicleType}</span>
                                                     </div>
                                                     <div className="flex items-center gap-2">
-                                                        {/* GPS Navigate button on each corridor card */}
                                                         {c.originLatLng && c.destLatLng && (
                                                             <button onClick={() => openNavigation(c.originLatLng, c.destLatLng)}
                                                                 title="Navigate in Google Maps"
@@ -423,6 +509,19 @@ export default function PortalPage() {
                                                     </div>
                                                 </div>
                                                 <div className="text-xs text-text-secondary leading-relaxed">{c.originName} → {c.destName}</div>
+
+                                                {/* Show CorridorStatusBox for Firestore corridors that have nodes */}
+                                                {c.corridorNodes && c.corridorNodes.length > 0 && (
+                                                    <div className="mt-3">
+                                                        <CorridorStatusBox
+                                                            nodes={c.corridorNodes}
+                                                            activeIdx={corridorActive && c.originName === originName ? activeNodeIdx : 0}
+                                                            eta={c.durationText || '—'}
+                                                            stops={0}
+                                                        />
+                                                    </div>
+                                                )}
+
                                                 <div className="flex items-center gap-3 mt-2">
                                                     <span className="text-[0.65rem] text-text-muted">By {c.creatorName}</span>
                                                     {c.distanceText && <span className="text-[0.65rem] text-accent-cyan font-mono">{c.distanceText}</span>}
