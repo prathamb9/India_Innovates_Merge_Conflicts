@@ -172,7 +172,7 @@ India_Innovates_Merge_Conflicts/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/Aniruddha1406/India_Innovates_Merge_Conflicts.git
+git clone https://github.com/prathamb9/India_Innovates_Merge_Conflicts.git
 cd India_Innovates_Merge_Conflicts
 ```
 
@@ -372,7 +372,7 @@ service cloud.firestore {
 
 <div align="center">
 
-**Built with ❤️ by [Team Merge_Conflicts](https://github.com/Aniruddha1406/India_Innovates_Merge_Conflicts)**
+**Built with ❤️ by [Team Merge_Conflicts](https://github.com/prathamb9/India_Innovates_Merge_Conflicts)**
 
 *AURA-GRID · India Innovates Hackathon · 2026*
 
