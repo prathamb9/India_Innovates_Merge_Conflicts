@@ -148,7 +148,7 @@ India_Innovates_Merge_Conflicts/
     │   └── cityNodes.js          # Real intersection data for 8 cities (~17 nodes each)
     │                             #   + pickCorridorNodes() geographic selection helper
     │
-    ├── .env.local                # 🔑 Environment variables — DO NOT COMMIT
+    ├── .env.local                # 🔑 Environment variables 
     ├── next.config.js
     ├── tailwind.config.js
     ├── postcss.config.js
