@@ -1,0 +1,13 @@
+# Edge-sim secrets — never commit these
+serviceAccountKey.json
+demo.mp4
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+
+# Model weights (auto-downloaded)
+*.pt

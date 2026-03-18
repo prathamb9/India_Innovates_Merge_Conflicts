@@ -1,0 +1,6 @@
+ultralytics
+opencv-python
+firebase-admin
+fastapi
+uvicorn
+python-multipart
