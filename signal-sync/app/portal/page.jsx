@@ -89,6 +89,14 @@ export default function PortalPage() {
     const [etaSec, setEtaSec] = useState(0);
     const [dupError, setDupError] = useState('');
 
+    // Dynamic Form States
+    const [patientSeverity, setPatientSeverity] = useState('Stable');
+    const [dispatchRef, setDispatchRef] = useState('');
+    const [fireType, setFireType] = useState('Residential');
+    const [fireSeverity, setFireSeverity] = useState('Low');
+    const [vvipLevel, setVvipLevel] = useState('Minister');
+    const [timeSensitivity, setTimeSensitivity] = useState('Standard');
+
     // ── Corridor node state ──────────────────────────────────────────────────
     const [corridorNodes, setCorridorNodes] = useState([]);
     const [activeNodeIdx, setActiveNodeIdx] = useState(0);
@@ -312,7 +320,38 @@ export default function PortalPage() {
                 distanceText: routeInfo?.distanceText || '',
                 durationText: routeInfo?.durationText || '',
                 corridorNodes: nodes.map(n => ({ id: n.id, name: n.name })),
+                // Dynamic metadata
+                patientSeverity: corridorType === 'ambulance' ? patientSeverity : null,
+                dispatchRef: corridorType === 'ambulance' ? dispatchRef : null,
+                fireType: corridorType === 'fire' ? fireType : null,
+                fireSeverity: corridorType === 'fire' ? fireSeverity : null,
+                vvipLevel: corridorType === 'vvip' ? vvipLevel : null,
+                timeSensitivity: corridorType === 'vvip' ? timeSensitivity : null,
             });
+
+            // CREATE IN BACKEND POSTGRES
+            try {
+                let vType = 'AMBULANCE';
+                if (corridorType === 'fire') vType = 'FIRE_TRUCK';
+                if (corridorType === 'vvip') vType = 'VVIP';
+                
+                await fetch('http://localhost:8080/api/v1/incident/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                    },
+                    body: JSON.stringify({
+                        cad_incident_id: corridorType === 'fire' ? dispatchRef : null,
+                        dispatch_ticket: corridorType === 'ambulance' ? dispatchRef : null,
+                        location: { origin: originLatLng, dest: destLatLng },
+                        vehicles: [{
+                            vehicle_type: vType,
+                            details: { patientSeverity, fireType, fireSeverity, vvipLevel, timeSensitivity }
+                        }]
+                    })
+                });
+            } catch(e) { console.error("Backend incident sync failed", e); }
 
             try {
                 const existing = localStorage.getItem('signalsync_active_corridors');
@@ -398,7 +437,7 @@ export default function PortalPage() {
                 {/* ── City Selector ── */}
                 <div className="flex items-center gap-4 mb-6">
                     <div className="flex items-center gap-3 flex-1">
-                        <span className="text-text-muted text-sm font-semibold uppercase tracking-wide whitespace-nowrap">Select City:</span>
+                        <span className="text-text-muted text-sm font-semibold uppercase tracking-wide whitespace-nowrap">{t('selectCity')}:</span>
                         <div className="flex flex-wrap gap-2">
                             {CITIES.map(c => (
                                 <button key={c.name} onClick={() => { setCity(c.name); resetRoute(); }}
@@ -421,13 +460,13 @@ export default function PortalPage() {
 
                         {/* Route Finder */}
                         <div className="bg-bg-card border border-white/5 rounded-xl p-6">
-                            <h3 className="text-lg font-bold mb-1">Route Finder</h3>
-                            <p className="text-text-secondary text-sm mb-4">Find the best route with live {city} traffic. Use GPS or type an address.</p>
+                            <h3 className="text-lg font-bold mb-1">{t('routeFinderTitle')}</h3>
+                            <p className="text-text-secondary text-sm mb-4">{t('routeFinderDesc', city)}</p>
 
                             <div className="flex flex-col gap-3.5">
                                 {/* Origin row with GPS button */}
                                 <div className="flex flex-col gap-1.5">
-                                    <label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">Origin</label>
+                                    <label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">{t('origin')}</label>
                                     <div className="flex gap-2">
                                         {mapsLoaded ? (
                                             <div className="flex-1">
@@ -463,9 +502,9 @@ export default function PortalPage() {
                                 </div>
 
                                 {mapsLoaded ? (
-                                    <PlaceInput key={`dest-${city}`} label="Destination" placeholder={`End point in ${city}...`} cityBounds={cityBounds}
+                                    <PlaceInput key={`dest-${city}`} label={t('destination')} placeholder={`End point in ${city}...`} cityBounds={cityBounds}
                                         onPlaceSelect={p => { setDestLatLng({ lat: p.lat, lng: p.lng }); setDestName(p.name); setShowCorridor(false); setCorridorActive(false); setRouteInfo(null); setDupError(''); }} />
-                                ) : <div className="flex flex-col gap-1.5"><label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">Destination</label><input disabled className="input-field opacity-50" placeholder="Loading Google Maps..." /></div>}
+                                ) : <div className="flex flex-col gap-1.5"><label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">{t('destination')}</label><input disabled className="input-field opacity-50" placeholder="Loading Google Maps..." /></div>}
 
                                 <button onClick={calcRoute} disabled={calculating || !canCalc}
                                     className="w-full py-3 rounded-xl font-bold bg-sky-500 hover:bg-sky-400 text-white disabled:opacity-50 transition-all font-sans cursor-pointer">
@@ -478,7 +517,7 @@ export default function PortalPage() {
                                 <div className="mt-5 pt-5 border-t border-white/10 flex flex-col gap-4">
                                     <div className="flex gap-3">
                                         <div className="flex-1 bg-white/[0.02] border border-white/10 rounded-xl p-3.5 text-center">
-                                            <div className="text-[0.65rem] text-text-muted uppercase mb-1">With Traffic</div>
+                                            <div className="text-[0.65rem] text-text-muted uppercase mb-1">{t('withTraffic')}</div>
                                             <div className="text-xl font-extrabold font-mono text-accent-amber">{routeInfo.durationText}</div>
                                             <div className="text-xs text-text-secondary mt-1">{routeInfo.distanceText}</div>
                                         </div>
@@ -502,6 +541,66 @@ export default function PortalPage() {
                                                     ))}
                                                 </div>
 
+                                                {/* Dynamic Context Forms */}
+                                                <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4 flex flex-col gap-3">
+                                                    {corridorType === 'ambulance' && (
+                                                        <>
+                                                            <div className="flex flex-col gap-1.5">
+                                                                <label className="text-[0.75rem] font-semibold text-text-secondary uppercase">Patient Severity</label>
+                                                                <select value={patientSeverity} onChange={e => setPatientSeverity(e.target.value)} className="input-field py-2 text-sm bg-[#050c18] text-white">
+                                                                    <option value="Stable">Stable</option>
+                                                                    <option value="Serious">Serious</option>
+                                                                    <option value="Critical">Critical</option>
+                                                                </select>
+                                                            </div>
+                                                            <div className="flex flex-col gap-1.5">
+                                                                <label className="text-[0.75rem] font-semibold text-text-secondary uppercase">Dispatch / Hospital Ref ID (Optional)</label>
+                                                                <input value={dispatchRef} onChange={e => setDispatchRef(e.target.value)} placeholder="e.g. HOSP-1029" className="input-field py-2 text-sm" />
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                    {corridorType === 'fire' && (
+                                                        <>
+                                                            <div className="flex flex-col gap-1.5">
+                                                                <label className="text-[0.75rem] font-semibold text-text-secondary uppercase">Fire Type</label>
+                                                                <select value={fireType} onChange={e => setFireType(e.target.value)} className="input-field py-2 text-sm bg-[#050c18] text-white">
+                                                                    <option value="Residential">Residential</option>
+                                                                    <option value="Commercial">Commercial</option>
+                                                                    <option value="Industrial">Industrial</option>
+                                                                    <option value="Forest">Forest</option>
+                                                                </select>
+                                                            </div>
+                                                            <div className="flex flex-col gap-1.5">
+                                                                <label className="text-[0.75rem] font-semibold text-text-secondary uppercase">Severity Level</label>
+                                                                <select value={fireSeverity} onChange={e => setFireSeverity(e.target.value)} className="input-field py-2 text-sm bg-[#050c18] text-white">
+                                                                    <option value="Low">Low</option>
+                                                                    <option value="Medium">Medium</option>
+                                                                    <option value="High">High</option>
+                                                                </select>
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                    {corridorType === 'vvip' && (
+                                                        <>
+                                                            <div className="flex flex-col gap-1.5">
+                                                                <label className="text-[0.75rem] font-semibold text-text-secondary uppercase">VVIP Level</label>
+                                                                <select value={vvipLevel} onChange={e => setVvipLevel(e.target.value)} className="input-field py-2 text-sm bg-[#050c18] text-white">
+                                                                    <option value="Minister">Minister</option>
+                                                                    <option value="Security movement">Security movement</option>
+                                                                    <option value="PM-Presidential">PM / Presidential</option>
+                                                                </select>
+                                                            </div>
+                                                            <div className="flex flex-col gap-1.5">
+                                                                <label className="text-[0.75rem] font-semibold text-text-secondary uppercase">Time Sensitivity</label>
+                                                                <select value={timeSensitivity} onChange={e => setTimeSensitivity(e.target.value)} className="input-field py-2 text-sm bg-[#050c18] text-white">
+                                                                    <option value="Standard">Standard</option>
+                                                                    <option value="High">High (Immediate)</option>
+                                                                </select>
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </div>
+
                                                 {isAdmin && (
                                                     <div className="flex flex-col gap-1.5">
                                                         <label className="text-[0.78rem] font-semibold text-accent-red uppercase tracking-wide">Vehicle # Override (Admin)</label>
@@ -522,7 +621,7 @@ export default function PortalPage() {
                                                     <div className="flex flex-col gap-4">
                                                         <div className="flex items-center gap-2">
                                                             <span className="w-2.5 h-2.5 rounded-full bg-accent-green animate-pulse" />
-                                                            <span className="text-sm font-bold text-accent-green">GREEN WAVE ACTIVE</span>
+                                                            <span className="text-sm font-bold text-accent-green">{t('greenWaveActive')}</span>
                                                             <span className="ml-auto text-xs font-mono text-accent-cyan">{etaStr}</span>
                                                         </div>
                                                         {routeInfo && (
@@ -560,14 +659,13 @@ export default function PortalPage() {
                                             /* ── Unverified user banner ── */
                                             <div className="bg-accent-amber/[0.06] border border-accent-amber/30 rounded-xl p-5 text-center">
                                                 <div className="text-2xl mb-2">🔒</div>
-                                                <div className="text-sm font-bold text-accent-amber mb-1">Account Pending Verification</div>
+                                                <div className="text-sm font-bold text-accent-amber mb-1">{t('pendingVerification')}</div>
                                                 <p className="text-text-muted text-xs leading-relaxed mb-3">
-                                                    Your account must be verified by an administrator before you can create green corridors.
-                                                    A verification request has been sent automatically.
+                                                    {t('pendingDesc')}
                                                 </p>
                                                 <div className="inline-flex items-center gap-2 bg-accent-amber/10 border border-accent-amber/25 rounded-full px-3 py-1.5">
                                                     <span className="w-2 h-2 rounded-full bg-accent-amber animate-pulse" />
-                                                    <span className="text-[0.65rem] font-bold text-accent-amber uppercase tracking-wider">Awaiting Admin Approval</span>
+                                                    <span className="text-[0.65rem] font-bold text-accent-amber uppercase tracking-wider">{t('awaitingApproval')}</span>
                                                 </div>
                                             </div>
                                         )
@@ -683,6 +781,7 @@ export default function PortalPage() {
                     </div>
                 </div>
             </div>
+            
         </div>
     );
 }

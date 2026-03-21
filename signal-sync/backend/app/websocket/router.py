@@ -40,3 +40,14 @@ async def ws_alerts(ws: WebSocket):
             await ws.receive_text()
     except WebSocketDisconnect:
         ws_manager.disconnect(ws, room)
+
+@router.websocket("/incident/{incident_id}")
+async def ws_incident(ws: WebSocket, incident_id: str):
+    """Subscribe to progress and status events for a specific incident."""
+    room = f"incident:{incident_id}"
+    await ws_manager.connect(ws, room)
+    try:
+        while True:
+            await ws.receive_text()
+    except WebSocketDisconnect:
+        ws_manager.disconnect(ws, room)

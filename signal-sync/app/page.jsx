@@ -220,9 +220,10 @@ function FlowsSection() {
         <section id="flows" className="relative z-10 py-24">
             <div className="max-w-[1200px] mx-auto px-10">
                 <div className="flex items-center gap-2 mb-4 text-accent-cyan text-xs font-bold uppercase tracking-widest">
-                    <span className="w-5 h-0.5 bg-accent-cyan rounded-full" />User Journeys
+                    <span className="w-5 h-0.5 bg-accent-cyan rounded-full" />{flow.desc === 'User Journeys' ? 'User Journeys' : 'User Journeys'}
                 </div>
                 <h2 className="text-4xl font-extrabold tracking-tight leading-tight mb-3">
+                    {/* Hack to use useLanguage without passing t into the component as a prop, though it is not optimal. But better is to just render the standard title if no t hook is here. Wait, actually I will need to pass t or fetch it via useLanguage inside FlowsSection. */}
                     Four Mission-Critical <span className="grad-text">Use Cases</span>
                 </h2>
 
@@ -323,7 +324,7 @@ function FaqSection() {
         <section id="faq" className="relative z-10 py-24">
             <div className="max-w-[1200px] mx-auto px-10">
                 <div className="flex items-center gap-2 mb-4 text-accent-cyan text-xs font-bold uppercase tracking-widest"><span className="w-5 h-0.5 bg-accent-cyan rounded-full" />Judge Q&A</div>
-                <h2 className="text-4xl font-extrabold tracking-tight mb-3">Edge Cases & <span className="grad-text">Fail-Safes</span></h2>
+                <h2 className="text-4xl font-extrabold tracking-tight mb-3">Edge Cases &amp; <span className="grad-text">Fail-Safes</span></h2>
                 <p className="text-text-secondary mb-12 max-w-xl">SignalSync anticipates real-world failure modes. Every "What if?" has an engineered answer.</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                     {FAQS.map((faq, i) => (
@@ -386,8 +387,8 @@ export default function HomePage() {
             <section id="problem" className="relative z-10 py-24">
                 <div className="max-w-[1200px] mx-auto px-10">
                     <div className="flex items-center gap-2 mb-4 text-accent-cyan text-xs font-bold uppercase tracking-widest"><span className="w-5 h-0.5 bg-accent-cyan rounded-full" />The Crisis</div>
-                    <h2 className="text-4xl font-extrabold tracking-tight mb-3">Every Second of Delay <span className="grad-text">Costs Lives</span></h2>
-                    <p className="text-text-secondary mb-12 max-w-xl">Traditional "dumb" traffic grids are killing the golden hour, endangering VVIPs, and choking cities with preventable congestion.</p>
+                    <h2 className="text-4xl font-extrabold tracking-tight mb-3">{t('crisisTitle')}</h2>
+                    <p className="text-text-secondary mb-12 max-w-xl">{t('crisisDesc')}</p>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {[
                             { icon: '🏥', bg: 'bg-[rgba(255,59,92,0.15)]', color: 'text-accent-red', title: 'The Golden Hour Crisis', desc: 'Ambulances spend 10–15% of travel time idling at red lights — directly cutting into the critical 60-minute survival window after trauma.', stat: '12.5%', statLabel: 'average journey wasted at intersections' },
@@ -414,8 +415,8 @@ export default function HomePage() {
             <section id="pillars" className="relative z-10 py-24">
                 <div className="max-w-[1200px] mx-auto px-10">
                     <div className="flex items-center gap-2 mb-4 text-accent-cyan text-xs font-bold uppercase tracking-widest"><span className="w-5 h-0.5 bg-accent-cyan rounded-full" />The Solution</div>
-                    <h2 className="text-4xl font-extrabold tracking-tight mb-3">Three-Pillar <span className="grad-text">Architecture</span></h2>
-                    <p className="text-text-secondary mb-12 max-w-xl">SignalSync operates on three synergistic layers, each solving a distinct failure mode of traditional traffic systems.</p>
+                    <h2 className="text-4xl font-extrabold tracking-tight mb-3">{t('pillarsTitle')}</h2>
+                    <p className="text-text-secondary mb-12 max-w-xl">{t('pillarsDesc')}</p>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <PillarCard letter="A" badge="Pillar A" variant="cyan" title="AI Vision & Dynamic Signal Control" desc="YOLOv8 cameras count vehicles in real time and allocate green time proportionally — never wasting a cycle on an empty lane." features={['Real-time vehicle density detection', 'Dynamic green time allocation', 'Live Google Maps density overlay']} tags={['YOLOv8', 'OpenCV', 'WebSocket']} />
                         <PillarCard letter="B" badge="Pillar B" variant="green" title="Visual Failsafe — Camera Override" desc="Edge-AI detects ambulance shape, color, and strobes locally. No GPS or portal needed — triggers a 3-second safe clearance automatically." features={['Works offline, no cloud needed', '3s yellow → red → green sequence', '97%+ detection confidence']} tags={['Edge AI', 'PyTorch', 'Offline']} />

@@ -31,6 +31,10 @@ const translations = {
         heroTitle: 'Intelligent Traffic That Saves Lives in Real Time',
         heroDesc: 'SignalSync fuses AI vision, predictive preemption, and verified green corridors to clear the path for ambulances, secure VVIP convoys, and optimize every intersection — automatically.',
         exploreSolution: 'Explore The Solution →', liveDashboard: 'Live Dashboard',
+        crisisTitle: 'Every Second of Delay Costs Lives', crisisDesc: 'Traditional "dumb" traffic grids are killing the golden hour, endangering VVIPs, and choking cities with preventable congestion.',
+        pillarsTitle: 'Three-Pillar Architecture', pillarsDesc: 'SignalSync operates on three synergistic layers, each solving a distinct failure mode of traditional traffic systems.',
+        flowsTitle: 'Four Mission-Critical Use Cases', flowsDesc: 'User Journeys',
+        faqTitle: 'Edge Cases & Fail-Safes', faqDesc: 'SignalSync anticipates real-world failure modes. Every "What if?" has an engineered answer.'
     },
     hi: {
         selectCity: 'शहर चुनें', origin: 'प्रारंभ', destination: 'गंतव्य',
@@ -64,6 +68,10 @@ const translations = {
         heroTitle: 'बुद्धिमान ट्रैफिक जो जीवन बचाता है',
         heroDesc: 'SignalSync AI दृष्टि, भविष्यवाणी और सत्यापित हरे कॉरिडोर को जोड़कर एम्बुलेंस के लिए रास्ता साफ करता है।',
         exploreSolution: 'समाधान देखें →', liveDashboard: 'लाइव डैशबोर्ड',
+        crisisTitle: 'हर एक सेकंड की देरी की कीमत जान है', crisisDesc: 'पारंपरिक ट्रैफिक सिस्टम जीवन रक्षक समय (गोल्डन ऑवर) को नष्ट कर रहे हैं।',
+        pillarsTitle: 'तीन-स्तंभ वास्तुकला', pillarsDesc: 'सिग्नलसिंक तीन तालमेल परतों पर काम करता है।',
+        flowsTitle: 'चार हत्त्वपूर्ण उपयोग के मामले', flowsDesc: 'उपयोगकर्ता यात्रा',
+        faqTitle: 'एज केस और फेल-सेफ', faqDesc: 'सिग्नलसिंक वास्तविक दुनिया की विफलता मोड का अनुमान लगाता है।'
     },
     ta: {
         selectCity: 'நகரம் தேர்ந்தெடு', origin: 'தொடக்கம்', destination: 'இலக்கு',
@@ -97,6 +105,10 @@ const translations = {
         heroTitle: 'உயிர் காக்கும் புத்திசாலி ட்ராஃபிக்',
         heroDesc: 'SignalSync AI, முன்னறிவிப்பு மற்றும் சரிபார்க்கப்பட்ட பசுமை தாவிடங்களை இணைக்கிறது.',
         exploreSolution: 'தீர்வை காண →', liveDashboard: 'நேரடி டாஷ்போர்டு',
+        crisisTitle: 'ஒவ்வொரு நொடி தாமதமும் உயிர்களைப் பறிக்கிறது', crisisDesc: 'பழைய ட்ராஃபிக் கட்டமைப்பு உயிர்களை ஆபத்தில் ஆழ்த்துகிறது.',
+        pillarsTitle: 'மூன்று தூண் கட்டமைப்பு', pillarsDesc: 'சிಗ್னல்சின்க் மூன்று தளங்களில் செயல்படுகிறது.',
+        flowsTitle: 'நான்கு முக்கிய பயன்பாடுகள்', flowsDesc: 'பயனர் பயணம்',
+        faqTitle: 'கேள்விகள் மற்றும் பாதுகாப்புகள்', faqDesc: 'ஒவ்வொரு ஆபத்திற்கும் விடை உள்ளது.'
     },
     te: {
         selectCity: 'నగరం ఎంచుకోండి', origin: 'మొదలు', destination: 'గమ్యం',
@@ -130,6 +142,10 @@ const translations = {
         heroTitle: 'జీవితాలు కాపాడే తెలివైన ట్రాఫిక్',
         heroDesc: 'SignalSync AI దృష్టి, అంచనా మరియు ధృవీకరించిన హరిత కారిడార్లను అనుసంధానిస్తుంది.',
         exploreSolution: 'పరిష్కారం చూడండి →', liveDashboard: 'లైవ్ డాష్‌బోర్డ్',
+        crisisTitle: 'ప్రతి సెకను ఆలస్యం ప్రాణాలను బలిగొంటుంది', crisisDesc: 'సాధారణ ట్రాఫిక్ గ్రిడ్లు విపత్తును మరియు రద్దీను పెంచుతాయి.',
+        pillarsTitle: 'మూడు స్థంభాల ఆర్కిటెక్చర్', pillarsDesc: 'సిగ్నల్సింక్ సమకాలీన ట్రాఫిక్ వ్యవస్థల ప్రమాదాలను పరిష్కరిస్తుంది.',
+        flowsTitle: 'నాలుగు ముఖ్యమైన వినియోగ పద్ధతులు', flowsDesc: 'వినియోగదారు ప్రయాణం',
+        faqTitle: 'సమస్యలు & పరిష్కారాలు', faqDesc: 'ప్రతి ఏమైతే ప్రశ్నకు సమాధానం ఉంది.'
     },
     bn: {
         selectCity: 'শহর বেছে নিন', origin: 'শুরুর স্থান', destination: 'গন্তব্য',
@@ -163,6 +179,10 @@ const translations = {
         heroTitle: 'বুদ্ধিমান ট্র্যাফিক যা জীবন বাঁচায়',
         heroDesc: 'SignalSync AI দৃষ্টি, পূর্বানুমান এবং যাচাইকৃত সবুজ করিডোর একত্রিত করে অ্যাম্বুলেন্সের পথ পরিষ্কার করে।',
         exploreSolution: 'সমাধান দেখুন →', liveDashboard: 'লাইভ ড্যাশবোর্ড',
+        crisisTitle: 'দেরির প্রতিটি সেকেণ্ড জীবনের মূল্য নেয়', crisisDesc: 'ঐতিহ্যবাহী ট্রাফিক সিস্টেমগুলি বিপজ্জনক যানজট সৃষ্টি করে।',
+        pillarsTitle: 'তিন-স্তম্ভের স্থাপত্য', pillarsDesc: 'সিগন্যালসিঙ্ক তিনটি ধাপে সমস্ত সমস্যার সমাধান দেয়।',
+        flowsTitle: 'চারটি গুরুত্বপূর্ণ ব্যবহার', flowsDesc: 'ব্যবহারকারীদের যাত্রা',
+        faqTitle: 'সীমাবদ্ধতা এবং নিরাপত্তা', faqDesc: 'সিগন্যালসিঙ্ক সমস্ত বাস্তব জগতের সমস্যার সমাধান দেয়।'
     },
 };
 

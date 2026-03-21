@@ -22,8 +22,8 @@ Start-Sleep -Seconds 4   # give Docker a moment to spin up
 
 # ── 2. FastAPI Server (Python backend) ───────────────────
 Write-Host "[2/4] Installing requirements & Starting FastAPI server on http://localhost:8080 ..." -ForegroundColor Yellow
-$py313 = "C:\Users\Pratham Borgaonkar\AppData\Local\Programs\Python\Python313\python.exe"
-Start-Process "cmd.exe" -ArgumentList "/k cd /d `"$backendDir`" && `"$py313`" -m venv venv && venv\Scripts\activate && pip install -r requirements.txt && uvicorn app.main:app --reload --port 8080" -WindowStyle Normal
+$py = "python"
+Start-Process "cmd.exe" -ArgumentList "/k cd /d `"$backendDir`" && `"$py`" -m venv venv && venv\Scripts\activate && pip install -r requirements.txt && uvicorn app.main:app --reload --port 8080" -WindowStyle Normal
 
 Start-Sleep -Seconds 2
 

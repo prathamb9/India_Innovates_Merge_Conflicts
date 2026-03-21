@@ -12,7 +12,7 @@ from app.services.routing_engine import build_graph
 from app.database import AsyncSessionLocal
 
 # API routers
-from app.api import corridor, signal, route, vision, traffic, health as health_router
+from app.api import auth, corridor, signal, route, vision, traffic, incident, chat, health as health_router
 from app.websocket.router import router as ws_router
 
 log = structlog.get_logger(__name__)
@@ -72,11 +72,14 @@ app.add_middleware(
 
 # ── REST routers ─────────────────────────────────────────────────────────────
 app.include_router(health_router.router)
+app.include_router(auth.router, prefix="/api/v1")
 app.include_router(corridor.router, prefix="/api/v1")
 app.include_router(signal.router, prefix="/api/v1")
 app.include_router(route.router, prefix="/api/v1")
 app.include_router(vision.router, prefix="/api/v1")
 app.include_router(traffic.router, prefix="/api/v1")
+app.include_router(incident.router, prefix="/api/v1")
+app.include_router(chat.router, prefix="/api/v1")
 
 # ── WebSocket ─────────────────────────────────────────────────────────────────
 app.include_router(ws_router)

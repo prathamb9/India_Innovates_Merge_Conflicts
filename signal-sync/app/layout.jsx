@@ -2,6 +2,7 @@ import './globals.css';
 import { AuthProvider } from '@/components/AuthProvider';
 import { LanguageProvider } from '@/components/LanguageProvider';
 import LanguagePicker from '@/components/LanguagePicker';
+import Chatbot from '@/components/Chatbot';
 
 export const metadata = {
     title: 'SignalSync | AI-Powered Intelligent Traffic Management',
@@ -23,6 +24,7 @@ export default function RootLayout({ children }) {
                     <LanguagePicker />
                     <AuthProvider>
                         {children}
+                        <Chatbot />
                     </AuthProvider>
                 </LanguageProvider>
             </body>

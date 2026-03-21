@@ -29,20 +29,49 @@ def init_firebase() -> None:
         log.warning("Firebase init failed — auth endpoints will be unavailable", error=str(e))
 
 
+from jose import jwt, JWTError, ExpiredSignatureError
+from datetime import datetime, timedelta
+
+# Local JWT Settings
+SECRET_KEY = settings.redis_url or "sup3r-secr3t-key"  # Fallback if no specific secret
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
+
+
+def create_access_token(data: dict) -> str:
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+
 bearer_scheme = HTTPBearer(auto_error=False)
 
 
-async def verify_firebase_token(
+async def verify_auth_token(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
 ) -> dict:
-    """Decode and verify a Firebase ID token. Returns the decoded claims dict."""
+    """Decode and verify a Firebase ID token or Local JWT. Returns the decoded claims dict."""
     if not credentials or not credentials.credentials:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Bearer token required",
         )
+    token = credentials.credentials
+    
+    # Try local JWT first
     try:
-        decoded = firebase_auth.verify_id_token(credentials.credentials)
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except ExpiredSignatureError:
+        pass # Might be Firebase token or expired local
+    except JWTError:
+        pass
+
+    # Fallback to Firebase
+    try:
+        decoded = firebase_auth.verify_id_token(token)
         return decoded
     except firebase_auth.InvalidIdTokenError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
@@ -54,10 +83,11 @@ async def verify_firebase_token(
 
 
 async def get_current_user(
-    claims: dict = Depends(verify_firebase_token),
+    claims: dict = Depends(verify_auth_token),
     db: AsyncSession = Depends(get_db),
 ) -> User:
-    """Resolve Firebase UID → DB User. Auto-provisions on first login."""
+    """Resolve ID/UID → DB User. Auto-provisions on first login."""
+    # Our local JWT sets 'uid', Firebase sets 'uid'
     uid = claims.get("uid")
     if not uid:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="UID missing")

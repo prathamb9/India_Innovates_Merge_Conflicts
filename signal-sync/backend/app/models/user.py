@@ -13,13 +13,19 @@ class UserRole(str, enum.Enum):
     DISPATCHER = "DISPATCHER"
     ADMIN = "ADMIN"
     VVIP_AUTHORITY = "VVIP_AUTHORITY"
+    AMBULANCE_DRIVER = "AMBULANCE_DRIVER"
+    FIRE_TRUCK_OPERATOR = "FIRE_TRUCK_OPERATOR"
+    VVIP_OPERATOR = "VVIP_OPERATOR"
 
 
 ROLE_LEVEL: dict[UserRole, int] = {
     UserRole.PUBLIC_USER: 0,
-    UserRole.DISPATCHER: 1,
-    UserRole.ADMIN: 2,
+    UserRole.AMBULANCE_DRIVER: 1,
+    UserRole.FIRE_TRUCK_OPERATOR: 1,
+    UserRole.VVIP_OPERATOR: 1,
+    UserRole.DISPATCHER: 2,
     UserRole.VVIP_AUTHORITY: 3,
+    UserRole.ADMIN: 4,
 }
 
 

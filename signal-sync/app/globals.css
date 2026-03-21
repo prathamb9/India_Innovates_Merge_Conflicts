@@ -92,6 +92,12 @@
 .input-field::placeholder { color: #475569; }
 .input-field:focus { border-color: var(--accent-cyan); }
 
+select option {
+    background-color: #0f172a;
+    color: #f8fafc;
+}
+
+
 /* ── Traffic lights — subtle functional glow kept ── */
 .tl-light-active-red { background: #f87171; box-shadow: 0 0 8px rgba(248,113,113,0.5); }
 .tl-light-active-amber { background: #fbbf24; box-shadow: 0 0 8px rgba(251,191,36,0.5); }
