@@ -2,12 +2,14 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useLanguage } from '@/components/LanguageProvider';
+import { useAuth } from '@/components/AuthProvider';
 import { LANGUAGES } from '@/lib/i18n';
 
 export default function Navbar() {
     const [scrolled, setScrolled] = useState(false);
     const [langOpen, setLangOpen] = useState(false);
     const { lang, setLang, t } = useLanguage();
+    const { user, logout } = useAuth();
 
     useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 20);
@@ -21,8 +23,8 @@ export default function Navbar() {
         <nav className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-10 py-3.5 border-b border-white/5 backdrop-blur-xl transition-all duration-300 ${scrolled ? 'bg-bg-deep/95' : 'bg-bg-deep/80'}`}>
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2.5 text-white font-extrabold text-xl tracking-tight no-underline">
-                <div className="w-9 h-9 rounded-[6px] bg-[#1e3a5f] border border-sky-500/30 flex items-center justify-center text-sky-400 text-lg">⬡</div>
-                <span><span className="text-sky-400">Signal</span>Sync</span>
+                <div className="w-9 h-9 rounded-[6px] bg-accent-cyan/15 border border-accent-cyan/30 flex items-center justify-center text-accent-cyan text-lg">⬡</div>
+                <span><span className="text-accent-cyan">Signal</span>Sync</span>
             </Link>
 
             {/* Nav links */}
@@ -67,8 +69,8 @@ export default function Navbar() {
                                 <button key={l.code} onClick={() => { setLang(l.code); setLangOpen(false); }} style={{
                                     display: 'block', width: '100%', textAlign: 'left',
                                     padding: '8px 12px', borderRadius: 7,
-                                    background: l.code === lang ? 'rgba(56,189,248,0.1)' : 'transparent',
-                                    color: l.code === lang ? '#38bdf8' : '#94a3b8',
+                                    background: l.code === lang ? 'rgba(0,255,255,0.1)' : 'transparent',
+                                    color: l.code === lang ? '#00FFFF' : '#94a3b8',
                                     fontSize: '0.85rem', fontWeight: 500, border: 'none',
                                     cursor: 'pointer', fontFamily: 'Outfit, sans-serif',
                                 }}>
@@ -82,9 +84,25 @@ export default function Navbar() {
                 <Link href="/dashboard" className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold bg-white/5 text-text-primary border border-white/5 hover:bg-white/10 transition-all no-underline">
                     {t('dashboard')}
                 </Link>
-                <Link href="/portal" className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold bg-sky-500 hover:bg-sky-400 text-white transition-all no-underline">
-                    🔒 {t('greenCorridor') || 'Green Corridor'}
+                <Link href="/portal" className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold bg-accent-green hover:bg-accent-green/80 text-black transition-all no-underline">
+                    🟢 {t('greenCorridor') || 'Green Corridor'}
                 </Link>
+
+                {/* Auth buttons */}
+                {user ? (
+                    <button onClick={logout} className="px-3.5 py-2 rounded-xl text-sm font-semibold bg-[rgba(255,59,92,0.15)] text-accent-red border border-accent-red/30 font-sans cursor-pointer transition-all">
+                        Logout
+                    </button>
+                ) : (
+                    <>
+                        <Link href="/auth/login" className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold bg-white/5 text-text-primary border border-white/5 hover:bg-white/10 transition-all no-underline">
+                            Sign In
+                        </Link>
+                        <Link href="/auth/register" className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold bg-accent-cyan hover:bg-accent-cyan/80 text-black transition-all no-underline">
+                            Sign Up
+                        </Link>
+                    </>
+                )}
             </div>
         </nav>
     );

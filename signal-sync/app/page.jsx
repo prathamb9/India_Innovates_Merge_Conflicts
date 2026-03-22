@@ -424,7 +424,7 @@ export default function HomePage() {
                             {t('heroDesc')}
                         </p>
                         <div className="flex flex-wrap gap-3 mb-12">
-                            <a href="#pillars" className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-base font-bold bg-sky-500 hover:bg-sky-400 text-white hover:-translate-y-px transition-all">{t('exploreSolution')}</a>
+                            <a href="#pillars" className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-base font-bold bg-accent-cyan hover:bg-accent-cyan/80 text-black hover:-translate-y-px transition-all">{t('exploreSolution')}</a>
                             <Link href="/dashboard" className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-base font-bold bg-white/5 border border-white/5 hover:bg-white/10 hover:-translate-y-px transition-all no-underline text-text-primary">{t('liveDashboard')}</Link>
                         </div>
                         {/* Stats bar */}

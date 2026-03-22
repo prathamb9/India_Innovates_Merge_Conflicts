@@ -11,7 +11,7 @@ module.exports = {
                 'bg-surface': '#0d1117',
                 'bg-card': '#111827',
                 'bg-card-h': '#1a2234',
-                'accent-cyan': '#38bdf8',
+                'accent-cyan': '#00FFFF',
                 'accent-green': '#4ade80',
                 'accent-amber': '#fbbf24',
                 'accent-red': '#f87171',
