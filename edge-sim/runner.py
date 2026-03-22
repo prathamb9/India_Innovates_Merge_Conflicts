@@ -66,6 +66,10 @@ def run(video_path: str, use_webcam: bool, use_firebase: bool, headless: bool = 
     consecutive_detections = 0
     event_fired            = False
     cooldown_until         = 0  # Timestamp after which we can fire again
+    frame_count            = 0
+    last_detected_emergency = False
+    last_best_conf          = 0.0
+    last_boxes              = []
 
     if use_firebase:
         try:
@@ -84,37 +88,50 @@ def run(video_path: str, use_webcam: bool, use_firebase: bool, headless: bool = 
             consecutive_detections = 0
             continue
 
-        # Run YOLO inference
-        results = model(frame, conf=CONFIDENCE_THRESHOLD, verbose=False)
+        # Downscale immediately to drastically reduce CPU load
+        frame = cv2.resize(frame, (640, 360))
 
-        detected_emergency = False
-        best_conf = 0.0
+        frame_count += 1
+        
+        if frame_count % 4 == 1:
+            # Run YOLO inference
+            results = model(frame, conf=CONFIDENCE_THRESHOLD, verbose=False)
 
-        for r in results:
-            for box in r.boxes:  # type: ignore
-                cls_name = model.names[int(box.cls[0])].lower()  # type: ignore
-                conf     = float(box.conf[0])  # type: ignore
-                if cls_name in EMERGENCY_CLASSES:
-                    detected_emergency = True
-                    best_conf = max(best_conf, conf)
-                    # Draw bounding box
+            last_detected_emergency = False
+            last_best_conf = 0.0
+            last_boxes.clear()
+
+            for r in results:
+                for box in r.boxes:  # type: ignore
+                    cls_name = model.names[int(box.cls[0])].lower()  # type: ignore
+                    conf     = float(box.conf[0])  # type: ignore
                     x1, y1, x2, y2 = map(int, box.xyxy[0])  # type: ignore
-                    cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 100), 2)
-                    cv2.putText(frame, f"{cls_name.upper()} {conf:.0%}", (x1, y1 - 8),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 255, 100), 2)
+                    if cls_name in EMERGENCY_CLASSES:
+                        last_detected_emergency = True
+                        last_best_conf = max(last_best_conf, conf)
+                    last_boxes.append((cls_name, conf, x1, y1, x2, y2))
+        
+        # Draw cached boxes
+        for (cls_name, conf, x1, y1, x2, y2) in last_boxes:
+            if cls_name in EMERGENCY_CLASSES:
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 100), 2)
+                cv2.putText(frame, f"{cls_name.upper()} {conf:.0%}", (x1, y1 - 8),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 255, 100), 2)
 
         # Count consecutive emergency frames
-        if detected_emergency:
-            consecutive_detections += 1  # type: ignore
-        else:
-            consecutive_detections = 0
+        # Only increment on frames where actual inference was done to match older timing
+        if frame_count % 4 == 1:
+            if last_detected_emergency:
+                consecutive_detections += 1  # type: ignore
+            else:
+                consecutive_detections = 0
 
         # Fire event after CONFIRM_FRAMES consecutive detections
         now = time.time()
         if consecutive_detections >= CONFIRM_FRAMES and not event_fired and now > cooldown_until:
             event_fired  = True
             cooldown_until = now + 30  # 30-second cooldown before next event
-            conf_pct = round(best_conf * 100, 1)  # type: ignore
+            conf_pct = round(last_best_conf * 100, 1)  # type: ignore
             print(f"\n[ALERT] Emergency vehicle confirmed at {node['id']} — {node['name']}")  # type: ignore
             print(f"        Confidence: {conf_pct}% · Firing Firebase event...")
 
@@ -128,8 +145,8 @@ def run(video_path: str, use_webcam: bool, use_firebase: bool, headless: bool = 
                 print("        [Offline mode] Firebase not connected.\n")
 
         # Overlay: Status bar
-        status_color = (0, 255, 100) if detected_emergency else (100, 200, 255)
-        status_text  = f"DETECTING | conf {best_conf:.0%}" if detected_emergency else "SCANNING"
+        status_color = (0, 255, 100) if last_detected_emergency else (100, 200, 255)
+        status_text  = f"DETECTING | conf {last_best_conf:.0%}" if last_detected_emergency else "SCANNING"
         cv2.rectangle(frame, (0, 0), (frame.shape[1], 28), (10, 15, 30), -1)
         cv2.putText(frame, f"{node['id']} {node['name']}  |  {status_text}", (8, 19),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.52, status_color, 1)

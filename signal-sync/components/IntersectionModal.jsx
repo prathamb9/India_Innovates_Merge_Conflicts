@@ -88,6 +88,8 @@ export default function IntersectionModal({ cam, camState, onClose }) {
     const signal       = camState?.phase      || 'red';
     const timer        = camState?.timer      || 0;
     const density      = firestoreStats?.density_pct  ?? camState?.density ?? 0;
+    const ns_density   = firestoreStats?.ns_density_pct ?? camState?.ns_density ?? Math.max(0, density - 5);
+    const ew_density   = firestoreStats?.ew_density_pct ?? camState?.ew_density ?? Math.max(0, density - 10);
     const vehicleCount = firestoreStats?.vehicle_count ?? 0;
     const breakdown    = firestoreStats?.class_breakdown ?? {};
     const totalBreakdown = Object.values(breakdown).reduce((s, v) => s + v, 0);
@@ -142,56 +144,48 @@ export default function IntersectionModal({ cam, camState, onClose }) {
                 {/* ── Body ── */}
                 <div style={{ display: 'flex', gap: 0, flex: 1, overflow: 'hidden', minHeight: 0 }}>
 
-                    {/* ── Left: Video Feed ── */}
-                    <div style={{ flex: 1.4, position: 'relative', background: '#020509', minHeight: 380 }}>
-                        {streamOk ? (
-                            <img
-                                ref={imgRef}
-                                src={streamUrl}
-                                alt={`${cam.name} live YOLO feed`}
-                                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                                onError={() => setStreamOk(false)}
-                            />
-                        ) : (
-                            <>
-                                {/* Fallback: loop demo.mp4 while streamer is offline */}
-                                <video
-                                    src="/demo.mp4"
-                                    autoPlay
-                                    loop
-                                    muted
-                                    playsInline
-                                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.7 }}
-                                />
-                                {/* DEMO MODE badge */}
-                                <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 5, display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,184,0,0.15)', border: '1px solid rgba(255,184,0,0.5)', borderRadius: 6, padding: '3px 8px' }}>
-                                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#ffb800', animation: 'pulse-dot 1.2s infinite' }} />
-                                    <span style={{ fontSize: '0.5rem', fontWeight: 800, color: '#ffb800', fontFamily: 'monospace', letterSpacing: '0.08em' }}>DEMO MODE — Streamer offline</span>
+                    {/* ── Left: Video Feed (4-Camera Grid with YOLO detection) ── */}
+                    <div style={{ flex: 1.6, position: 'relative', background: '#020509', minHeight: 480 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', gap: 2, height: '100%' }}>
+                            {[
+                                { id: 'NORTH', color: '#00f5ff', label: `N/S Density: ${ns_density}%`, offset: 0 },
+                                { id: 'SOUTH', color: '#00f5ff', label: `N/S Density: ${ns_density}%`, offset: 3 },
+                                { id: 'EAST',  color: '#a78bfa', label: `E/W Density: ${ew_density}%`, offset: 6 },
+                                { id: 'WEST',  color: '#a78bfa', label: `E/W Density: ${ew_density}%`, offset: 9 }
+                            ].map((v, i) => (
+                                <div key={v.id} style={{ position: 'relative', overflow: 'hidden', background: '#0a0f18' }}>
+                                    {streamOk ? (
+                                        <img
+                                            ref={i === 0 ? imgRef : null}
+                                            src={streamUrl}
+                                            alt={`${cam.name} ${v.id} YOLO`}
+                                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                                            onError={i === 0 ? () => setStreamOk(false) : undefined}
+                                        />
+                                    ) : (
+                                        <video
+                                            src={`/demo.mp4#t=${v.offset}`}
+                                            autoPlay loop muted playsInline
+                                            style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }}
+                                        />
+                                    )}
+                                    <div style={{ position: 'absolute', top: 8, left: 8, background: 'rgba(0,0,0,0.85)', padding: '5px 12px', borderRadius: 6, border: `1px solid ${v.color}55`, zIndex: 3, backdropFilter: 'blur(4px)' }}>
+                                        <div style={{ color: v.color, fontSize: '0.65rem', fontWeight: 900, letterSpacing: '0.05em' }}>CAM: {v.id}</div>
+                                        <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.45rem', marginTop: 2, textTransform: 'uppercase' }}>{v.label}</div>
+                                    </div>
+                                    {/* REC badge */}
+                                    <div style={{ position: 'absolute', top: 10, right: 10, display: 'flex', alignItems: 'center', gap: 4, zIndex: 3 }}>
+                                        <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#ff3b5c', animation: 'pulse-dot 1.2s infinite' }} />
+                                    </div>
                                 </div>
-                                {/* Retry button */}
-                                <button
-                                    onClick={() => { setStreamOk(true); setTimeout(() => { if (imgRef.current) imgRef.current.src = streamUrl + '?t=' + Date.now(); }, 100); }}
-                                    style={{ position: 'absolute', bottom: 14, left: '50%', transform: 'translateX(-50%)', zIndex: 5, padding: '6px 14px', borderRadius: 8, border: '1px solid rgba(0,245,255,0.3)', background: 'rgba(0,0,0,0.6)', color: '#00f5ff', fontSize: '0.65rem', cursor: 'pointer', fontFamily: 'inherit', backdropFilter: 'blur(4px)' }}
-                                >
-                                    Retry Live Stream
-                                </button>
-                            </>
-                        )}
+                            ))}
+                        </div>
 
                         {/* Scanline overlay */}
                         <div style={{ position: 'absolute', left: 0, right: 0, height: 2, background: 'rgba(0,245,255,0.3)', animation: 'scanline 2.4s linear infinite', pointerEvents: 'none', zIndex: 2 }} />
-                        {/* Grid overlay */}
-                        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(0,245,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,255,0.02) 1px,transparent 1px)', backgroundSize: '20px 20px', pointerEvents: 'none', zIndex: 2 }} />
-
-                        {/* REC badge */}
-                        <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', alignItems: 'center', gap: 4, zIndex: 3 }}>
-                            <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#ff3b5c', animation: 'pulse-dot 1.2s infinite' }} />
-                            <span style={{ fontSize: '0.45rem', fontWeight: 800, color: '#ff3b5c', fontFamily: 'monospace', letterSpacing: '0.08em' }}>REC</span>
-                        </div>
-
-                        {/* Stream URL badge */}
+                        {/* Edge AI badge */}
                         <div style={{ position: 'absolute', bottom: 8, left: 8, zIndex: 3, background: 'rgba(0,0,0,0.65)', borderRadius: 5, padding: '2px 7px', fontSize: '0.44rem', fontFamily: 'monospace', color: 'rgba(0,245,255,0.6)' }}>
-                            {streamUrl}
+                            {cam.id} · YOLO-v8n · 4-CAM INTERSECTION VIEW
                         </div>
                     </div>
 
@@ -227,48 +221,22 @@ export default function IntersectionModal({ cam, camState, onClose }) {
 
                         {/* Density bar */}
                         <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                            <div style={{ fontSize: '0.5rem', color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Traffic Density</div>
-                            <div style={{ height: 10, background: 'rgba(255,255,255,0.05)', borderRadius: 6, overflow: 'hidden' }}>
-                                <div style={{ height: '100%', width: `${density}%`, background: `linear-gradient(90deg, ${barColor}88, ${barColor})`, borderRadius: 6, boxShadow: `0 0 8px ${barColor}66`, transition: 'width 0.9s ease, background 0.5s ease' }} />
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 6 }}>
+                                <div style={{ fontSize: '0.5rem', color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Directional Density</div>
+                                <div style={{ fontSize: '0.55rem', fontFamily: 'monospace' }}>
+                                    <span style={{ color: '#00f5ff' }}>N/S {ns_density}%</span>
+                                    <span style={{ margin: '0 6px', color: 'rgba(255,255,255,0.15)' }}>|</span>
+                                    <span style={{ color: '#a78bfa' }}>E/W {ew_density}%</span>
+                                </div>
+                            </div>
+                            <div style={{ height: 10, background: 'rgba(255,255,255,0.05)', borderRadius: 6, overflow: 'hidden', display: 'flex' }}>
+                                <div style={{ height: '100%', width: `${ns_density}%`, background: `linear-gradient(90deg, rgba(0,245,255,0.5), #00f5ff)`, boxShadow: `0 0 8px #00f5ff66`, transition: 'width 0.9s ease' }} />
+                                <div style={{ height: '100%', width: `${ew_density}%`, background: `linear-gradient(90deg, rgba(167,139,250,0.5), #a78bfa)`, boxShadow: `0 0 8px #a78bfa66`, transition: 'width 0.9s ease', opacity: 0.9 }} />
                             </div>
                         </div>
 
-                        {/* Class Breakdown */}
                         <div style={{ padding: '12px 16px', flex: 1 }}>
-                            <div style={{ fontSize: '0.5rem', color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
-                                Vehicle Class Breakdown
-                                {!isSource && <span style={{ marginLeft: 6, color: 'rgba(255,255,255,0.12)' }}>(Start streamer for live data)</span>}
-                            </div>
-                            {Object.keys(breakdown).length > 0 ? (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                    {Object.entries(breakdown)
-                                        .sort((a, b) => b[1] - a[1])
-                                        .map(([cls, count]) => (
-                                            <ClassBar
-                                                key={cls}
-                                                label={cls.charAt(0).toUpperCase() + cls.slice(1)}
-                                                count={count}
-                                                total={totalBreakdown}
-                                                color={CLASS_COLORS[cls] || '#94a3b8'}
-                                            />
-                                        ))
-                                    }
-                                </div>
-                            ) : (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                    {[
-                                        ['Car', Math.floor(vehicleCount * 0.6 || Math.random() * 10 + 3), '#00f5ff'],
-                                        ['Motorcycle', Math.floor(vehicleCount * 0.25 || Math.random() * 5 + 1), '#a78bfa'],
-                                        ['Bus', Math.floor(vehicleCount * 0.1 || Math.random() * 3), '#ffb800'],
-                                        ['Truck', Math.floor(vehicleCount * 0.05 || Math.random() * 2), '#ff3b5c'],
-                                    ].map(([cls, count, color]) => (
-                                        <ClassBar key={cls} label={cls} count={Math.round(count)} total={Math.max(vehicleCount, 1)} color={color} />
-                                    ))}
-                                    <div style={{ fontSize: '0.46rem', color: 'rgba(255,255,255,0.15)', fontStyle: 'italic', marginTop: 4 }}>
-                                        Estimated — connect Edge AI for real-time breakdown
-                                    </div>
-                                </div>
-                            )}
+                            {/* Replaced Class Breakdown with flexible empty space as per user layout preference */}
                         </div>
 
                         {/* Timestamp */}

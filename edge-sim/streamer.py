@@ -52,12 +52,18 @@ _latest_stats: dict = {
     node["id"]: {
         "vehicle_count": 0,
         "density_pct": 0,
+        "ns_density_pct": 0,
+        "ew_density_pct": 0,
         "class_breakdown": {},
         "emergency": False,
         "timestamp": 0.0,
     }
     for node in CAMERA_NODES
 }
+
+# Shared annotated frame — background worker draws YOLO boxes, MJPEG endpoints just serve it
+_frame_lock = threading.Lock()
+_latest_annotated_frame = None  # numpy array with bounding boxes drawn
 
 # ---------------------------------------------------------------------------
 # YOLO model — loaded once, shared across all threads
@@ -95,50 +101,81 @@ def generate_frames(video_path: str, node: dict, use_firebase: bool, fb=None):
 
     last_push  = 0.0   # timestamp of last Firebase push
     PUSH_EVERY = 2.0   # seconds between stat pushes
+    frame_count = 0
+    last_boxes = []    # Cache boxes between inferences
+    last_emergency_detected = False
 
     while True:
+        # Prevent the while loop from maxing out CPU and spamming the browser
+        time.sleep(0.04)  # ~25 FPS artificial limit
+
         ret, frame = cap.read()
         if not ret:
             # Loop back to start (not the offset, to keep looping naturally)
             cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
             continue
+            
+        # Downscale immediately to drastically reduce CPU load from 6 concurrent streams
+        frame = cv2.resize(frame, (640, 360))
+            
+        frame_count += 1
 
-        # ── YOLO inference ────────────────────────────────────────────────
-        results = model(frame, conf=CONFIDENCE_THRESHOLD, verbose=False)
+        # ── YOLO inference (Frame Skipping for Speed) ─────────────────────
+        if frame_count % 4 == 1:
+            results = model(frame, conf=CONFIDENCE_THRESHOLD, verbose=False)
+            last_boxes.clear()
+            last_emergency_detected = False
+            for r in results:
+                for box in r.boxes:          # type: ignore
+                    cls_name = model.names[int(box.cls[0])].lower()   # type: ignore
+                    conf     = float(box.conf[0])                      # type: ignore
+                    x1, y1, x2, y2 = map(int, box.xyxy[0])             # type: ignore
+                    if cls_name in EMERGENCY_CLASSES:
+                        last_emergency_detected = True
+                    last_boxes.append((cls_name, conf, x1, y1, x2, y2))
 
-        vehicle_count  = 0
+        vehicle_count   = 0
         class_breakdown = {}
+        ns_box_area     = 0
+        ew_box_area     = 0
         total_box_area  = 0
         frame_area      = frame.shape[0] * frame.shape[1]
 
-        for r in results:
-            for box in r.boxes:          # type: ignore
-                cls_name = model.names[int(box.cls[0])].lower()   # type: ignore
-                conf     = float(box.conf[0])                      # type: ignore
-                x1, y1, x2, y2 = map(int, box.xyxy[0])           # type: ignore
-
-                # Colour: emergency = green, vehicle = cyan, other = dim blue
-                if cls_name in EMERGENCY_CLASSES:
-                    colour = (0, 255, 100)
-                elif cls_name in VEHICLE_CLASSES:
-                    colour = (0, 220, 255)
-                    vehicle_count += 1
-                    box_area = (x2 - x1) * (y2 - y1)
-                    total_box_area += box_area
-                    class_breakdown[cls_name] = class_breakdown.get(cls_name, 0) + 1
+        for (cls_name, conf, x1, y1, x2, y2) in last_boxes:
+            # Colour: emergency = green, vehicle = cyan, other = dim blue
+            if cls_name in EMERGENCY_CLASSES:
+                colour = (0, 255, 100)
+            elif cls_name in VEHICLE_CLASSES:
+                colour = (0, 220, 255)
+                vehicle_count += 1
+                box_area = (x2 - x1) * (y2 - y1)
+                total_box_area += box_area
+                
+                # Heuristic: Wider than tall by 1.3x is likely East/West cross traffic
+                if (x2 - x1) > (y2 - y1) * 1.3:
+                    ew_box_area += box_area
                 else:
-                    colour = (80, 80, 200)
+                    ns_box_area += box_area
 
-                cv2.rectangle(frame, (x1, y1), (x2, y2), colour, 2)
-                cv2.putText(frame, f"{cls_name} {conf:.0%}",
-                            (x1, max(y1 - 6, 10)),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.46, colour, 1)
+                class_breakdown[cls_name] = class_breakdown.get(cls_name, 0) + 1
+            else:
+                colour = (80, 80, 200)
+
+            cv2.rectangle(frame, (x1, y1), (x2, y2), colour, 2)
+            cv2.putText(frame, f"{cls_name} {conf:.0%}",
+                        (x1, max(y1 - 6, 10)),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.46, colour, 1)
 
         # ── Compute density ───────────────────────────────────────────────
-        raw_density = min(100, int((total_box_area / max(frame_area, 1)) * 1800))
-        # Add some per-node variation so cards look different
-        variation   = (hash(node_id) % 20) - 10   # fixed offset per node
-        density_pct = max(5, min(97, raw_density + variation))
+        def calc_density(area): return min(100, int((area / max(frame_area, 1)) * 1800))
+        variation      = (hash(node_id) % 20) - 10   # fixed offset per node
+        raw_density    = calc_density(total_box_area)
+        raw_ns_density = calc_density(ns_box_area)
+        raw_ew_density = calc_density(ew_box_area)
+        
+        density_pct    = max(5, min(97, raw_density + variation))
+        ns_density_pct = max(0, min(97, raw_ns_density + (variation // 2)))
+        ew_density_pct = max(0, min(97, raw_ew_density + (variation // 2)))
 
         # ── Update shared stats dict ──────────────────────────────────────
         now = time.time()
@@ -146,12 +183,10 @@ def generate_frames(video_path: str, node: dict, use_firebase: bool, fb=None):
             _latest_stats[node_id] = {
                 "vehicle_count":   vehicle_count,
                 "density_pct":     density_pct,
+                "ns_density_pct":  ns_density_pct,
+                "ew_density_pct":  ew_density_pct,
                 "class_breakdown": class_breakdown,
-                "emergency":       any(
-                    cls_name in EMERGENCY_CLASSES
-                    for r in results for box in r.boxes
-                    for cls_name in [model.names[int(box.cls[0])].lower()]  # type: ignore
-                ),
+                "emergency":       last_emergency_detected,
                 "timestamp": now,
             }
 
@@ -161,6 +196,8 @@ def generate_frames(video_path: str, node: dict, use_firebase: bool, fb=None):
                 fb.push_stats(node_id, {
                     "vehicle_count":   vehicle_count,
                     "density_pct":     density_pct,
+                    "ns_density_pct":  ns_density_pct,
+                    "ew_density_pct":  ew_density_pct,
                     "class_breakdown": class_breakdown,
                     "node_name":       node_name,
                 })
@@ -200,21 +237,36 @@ _use_firebase = False
 _fb_module   = None
 
 
+def generate_frames_cached():
+    """
+    Serves the latest YOLO-annotated frame from the background worker.
+    Zero AI processing per connection — just JPEG encoding.
+    """
+    while True:
+        time.sleep(0.04)  # ~25 FPS
+        with _frame_lock:
+            if _latest_annotated_frame is None:
+                continue
+            frame = _latest_annotated_frame.copy()
+        _, buffer = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 72])
+        yield (b"--frame\r\nContent-Type: image/jpeg\r\n\r\n"
+               + buffer.tobytes() + b"\r\n")
+
+
 @app.get("/video_feed/{cam_id}")
 def video_feed(cam_id: str):
-    """MJPEG stream for a specific camera node.  cam_id e.g. CAM-01"""
-    node = next((n for n in CAMERA_NODES if n["id"] == cam_id), CAMERA_NODES[0])
+    """MJPEG stream — serves pre-annotated frames from background worker (zero extra YOLO)"""
     return StreamingResponse(
-        generate_frames(_video_path, node, _use_firebase, _fb_module),
+        generate_frames_cached(),
         media_type="multipart/x-mixed-replace; boundary=frame",
     )
 
 
 @app.get("/video_feed")
 def video_feed_default():
-    """Fallback: serves CAM-01 stream (backwards compatibility)."""
+    """Fallback: serves annotated stream (backwards compatibility)."""
     return StreamingResponse(
-        generate_frames(_video_path, CAMERA_NODES[0], _use_firebase, _fb_module),
+        generate_frames_cached(),
         media_type="multipart/x-mixed-replace; boundary=frame",
     )
 
@@ -236,6 +288,145 @@ def get_node_stats(cam_id: str):
 @app.get("/health")
 def health():
     return {"status": "ok", "service": "SignalSync Multi-Node Streamer", "nodes": len(CAMERA_NODES)}
+
+
+# ---------------------------------------------------------------------------
+# Background stats-only worker — single thread, pushes stats for ALL 6 nodes
+# ---------------------------------------------------------------------------
+def _background_stats_worker(video_path: str, use_firebase: bool, fb_module):
+    """
+    Reads video at ~20 FPS, runs YOLO every 6th frame, draws cached
+    bounding boxes on ALL frames so the stream looks like smooth video.
+    """
+    import time as _time
+    cap = cv2.VideoCapture(video_path)
+    model = get_model()
+    frame_count = 0
+    last_push = 0.0
+    PUSH_EVERY = 2.0
+    INFER_EVERY = 6  # Run YOLO every 6th frame (~3.3 inferences/sec at 20 FPS)
+
+    # Cached detection results — drawn on every frame until next inference
+    cached_boxes = []       # list of (x1, y1, x2, y2, cls_name, conf, is_emg)
+    cached_vehicle_count = 0
+    cached_density = 0
+    cached_ns = 0
+    cached_ew = 0
+    cached_breakdown = {}
+    cached_emergency = False
+
+    print("[Stats Worker] Background stats thread started — 20 FPS video + YOLO detection")
+
+    while True:
+        _time.sleep(0.05)  # ~20 FPS — smooth video playback
+
+        ret, frame = cap.read()
+        if not ret:
+            cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+            continue
+
+        frame = cv2.resize(frame, (640, 360))
+        frame_count += 1
+        frame_area = frame.shape[0] * frame.shape[1]
+
+        # ── Run YOLO inference on every Nth frame ──
+        if frame_count % INFER_EVERY == 1:
+            results = model(frame, conf=CONFIDENCE_THRESHOLD, verbose=False)
+
+            new_boxes = []
+            vehicle_count = 0
+            class_breakdown = {}
+            ns_box_area = 0
+            ew_box_area = 0
+            total_box_area = 0
+            emergency_detected = False
+
+            for r in results:
+                for box in r.boxes:  # type: ignore
+                    cls_name = model.names[int(box.cls[0])].lower()  # type: ignore
+                    x1, y1, x2, y2 = map(int, box.xyxy[0])  # type: ignore
+                    conf = float(box.conf[0])  # type: ignore
+                    is_emg = cls_name in EMERGENCY_CLASSES
+                    if is_emg:
+                        emergency_detected = True
+                    if cls_name in VEHICLE_CLASSES:
+                        vehicle_count += 1
+                        box_area = (x2 - x1) * (y2 - y1)
+                        total_box_area += box_area
+                        if (x2 - x1) > (y2 - y1) * 1.3:
+                            ew_box_area += box_area
+                        else:
+                            ns_box_area += box_area
+                        class_breakdown[cls_name] = class_breakdown.get(cls_name, 0) + 1
+                        new_boxes.append((x1, y1, x2, y2, cls_name, conf, is_emg))
+
+            def calc_density(area):
+                return min(100, int((area / max(frame_area, 1)) * 1800))
+
+            # Update cached values
+            cached_boxes = new_boxes
+            cached_vehicle_count = vehicle_count
+            cached_density = calc_density(total_box_area)
+            cached_ns = calc_density(ns_box_area)
+            cached_ew = calc_density(ew_box_area)
+            cached_breakdown = class_breakdown
+            cached_emergency = emergency_detected
+
+            # Push stats for all 6 nodes
+            now = _time.time()
+            for node in CAMERA_NODES:
+                variation = (hash(node["id"]) % 20) - 10
+                density_pct = max(5, min(97, cached_density + variation))
+                ns_density_pct = max(0, min(97, cached_ns + (variation // 2)))
+                ew_density_pct = max(0, min(97, cached_ew + (variation // 2)))
+
+                with _stats_lock:
+                    _latest_stats[node["id"]] = {
+                        "vehicle_count": cached_vehicle_count,
+                        "density_pct": density_pct,
+                        "ns_density_pct": ns_density_pct,
+                        "ew_density_pct": ew_density_pct,
+                        "class_breakdown": cached_breakdown,
+                        "emergency": cached_emergency,
+                        "timestamp": now,
+                    }
+
+                if use_firebase and fb_module and (now - last_push) >= PUSH_EVERY:
+                    try:
+                        fb_module.push_stats(node["id"], {
+                            "vehicle_count": cached_vehicle_count,
+                            "density_pct": density_pct,
+                            "ns_density_pct": ns_density_pct,
+                            "ew_density_pct": ew_density_pct,
+                            "class_breakdown": cached_breakdown,
+                            "node_name": node["name"],
+                        })
+                    except Exception as e:
+                        print(f"[Firebase] Push error for {node['id']}: {e}")
+
+            if use_firebase and fb_module and (now - last_push) >= PUSH_EVERY:
+                last_push = now
+
+        # ── Draw cached bounding boxes on EVERY frame (smooth video) ──
+        for (x1, y1, x2, y2, cls_name, conf, is_emg) in cached_boxes:
+            color = (0, 0, 255) if is_emg else (0, 255, 0)
+            cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
+            label = f"{cls_name} {conf:.0%}"
+            (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.45, 1)
+            cv2.rectangle(frame, (x1, y1 - th - 6), (x1 + tw + 4, y1), color, -1)
+            cv2.putText(frame, label, (x1 + 2, y1 - 4), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 0), 1)
+
+        # Draw HUD overlay
+        hud = f"Vehicles: {cached_vehicle_count} | Density: {cached_density}% | N/S: {cached_ns}% | E/W: {cached_ew}% | YOLO-v8n"
+        cv2.rectangle(frame, (0, 0), (640, 22), (0, 0, 0), -1)
+        cv2.putText(frame, hud, (8, 16), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (0, 245, 255), 1)
+
+        # Store annotated frame for MJPEG endpoint — UPDATED EVERY FRAME
+        global _latest_annotated_frame
+        with _frame_lock:
+            _latest_annotated_frame = frame
+
+    cap.release()
 
 
 # ---------------------------------------------------------------------------
@@ -261,13 +452,20 @@ if __name__ == "__main__":
             print("[WARNING] Running without Firebase.\n")
             _use_firebase = False
 
-    print(f"\n[Streamer] Starting SignalSync Multi-Node Streamer on port {args.port}")
+    print(f"\n[Streamer] Starting SignalSync Stats Engine on port {args.port}")
     print(f"[Streamer] Video source: {args.video}")
     print(f"[Streamer] Firebase push: {'enabled' if _use_firebase else 'disabled (offline)'}")
-    print(f"\n[Streamer] Stream URLs:")
-    for node in CAMERA_NODES:
-        print(f"  http://localhost:{args.port}/video_feed/{node['id']}  →  {node['name']}")
-    print(f"\n[Streamer] Stats API:  http://localhost:{args.port}/stats")
+    print(f"[Streamer] Stats API:  http://localhost:{args.port}/stats")
     print(f"[Streamer] Health:     http://localhost:{args.port}/health\n")
 
+    # Start background stats worker thread
+    stats_thread = threading.Thread(
+        target=_background_stats_worker,
+        args=(_video_path, _use_firebase, _fb_module),
+        daemon=True,
+    )
+    stats_thread.start()
+    print("[Streamer] Background YOLO stats worker started (single thread for all 6 nodes)\n")
+
     uvicorn.run(app, host="0.0.0.0", port=args.port, log_level="warning")
+

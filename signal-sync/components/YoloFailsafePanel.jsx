@@ -11,12 +11,12 @@ const STREAM_BASE = 'http://localhost:8001';
 /* ─── Per-city camera sets (6 intersections each) ────────────────────────── */
 const CITY_CAMERAS = {
     Delhi: [
-        { id: 'CAM-01', name: 'Connaught Place', road: 'Janpath × Rajpath', ns: 'Janpath', ew: 'Rajpath' },
-        { id: 'CAM-02', name: 'AIIMS Junction', road: 'Ring Rd × Aurobindo Marg', ns: 'Aurobindo', ew: 'Ring Rd' },
-        { id: 'CAM-03', name: 'Karol Bagh', road: 'Pusa Rd × Arya Samaj Rd', ns: 'Arya Samaj', ew: 'Pusa Rd' },
-        { id: 'CAM-04', name: 'IGI Terminal 3', road: 'NH-48 × Airport Rd', ns: 'Airport Rd', ew: 'NH-48' },
-        { id: 'CAM-05', name: 'GTK Road Azadpur', road: 'GTK Rd × Outer Ring', ns: 'GTK Rd', ew: 'Outer Ring' },
-        { id: 'CAM-06', name: 'Lajpat Nagar', road: 'Ring Rd × Andrews Ganj', ns: 'Andrews Ganj', ew: 'Ring Rd' },
+        { id: 'CAM-01', name: 'Connaught Place', road: 'Janpath × Rajpath', ns: 'Janpath', ew: 'Rajpath', offset: 0 },
+        { id: 'CAM-02', name: 'AIIMS Junction', road: 'Ring Rd × Aurobindo Marg', ns: 'Aurobindo', ew: 'Ring Rd', offset: 5 },
+        { id: 'CAM-03', name: 'Karol Bagh', road: 'Pusa Rd × Arya Samaj Rd', ns: 'Arya Samaj', ew: 'Pusa Rd', offset: 10 },
+        { id: 'CAM-04', name: 'IGI Terminal 3', road: 'NH-48 × Airport Rd', ns: 'Airport Rd', ew: 'NH-48', offset: 15 },
+        { id: 'CAM-05', name: 'GTK Road Azadpur', road: 'GTK Rd × Outer Ring', ns: 'GTK Rd', ew: 'Outer Ring', offset: 20 },
+        { id: 'CAM-06', name: 'Lajpat Nagar', road: 'Ring Rd × Andrews Ganj', ns: 'Andrews Ganj', ew: 'Ring Rd', offset: 25 },
     ],
     Mumbai: [
         { id: 'CAM-01', name: 'Dadar TT Circle', road: 'LBS Marg × Gokhale Rd', ns: 'Gokhale Rd', ew: 'LBS Marg' },
@@ -143,7 +143,7 @@ function OverrideBtn({ label, color, active, disabled, onClick }) {
 }
 
 /* ─── Camera card ────────────────────────────────────────────────────────── */
-function CameraCard({ cam, density, signal, timer, event, emergency, manualOverride, iotOverride, onManualGreen, onManualRed, onManualReset, onExpand }) {
+function CameraCard({ cam, density, ns_density, ew_density, signal, timer, event, emergency, manualOverride, iotOverride, onManualGreen, onManualRed, onManualReset, onExpand }) {
     const [streamError, setStreamError] = useState(false);
     // Signal priority: iotOverride > emergency > manualOverride > auto phase
     const isIot       = !!iotOverride;
@@ -197,31 +197,22 @@ function CameraCard({ cam, density, signal, timer, event, emergency, manualOverr
                 </div>
             </div>
 
-            {/* Camera feed — live MJPEG from Python streamer (click to expand) */}
+            {/* Camera feed — native HTML5 video for smooth hardware-accelerated playback */}
             <div
                 onClick={onExpand}
                 title="Click to expand"
                 style={{ height: 90, background: '#050a14', borderRadius: 8, border: '1px solid rgba(255,255,255,0.04)', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
             >
-                {streamError ? (
-                    <video
-                        src="/demo.mp4"
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.75, zIndex: 0 }}
-                    />
-                ) : (
-                    <img
-                        src={`${STREAM_BASE}/video_feed/${cam.id}`}
-                        alt={`${cam.name} live feed`}
-                        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85, zIndex: 0 }}
-                        onError={() => setStreamError(true)}
-                    />
-                )}
-                {/* Expand hint */}
-                <div style={{ position: 'absolute', top: 4, right: 5, zIndex: 4, background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 4, padding: '1px 5px', fontSize: '0.38rem', color: streamError ? 'rgba(255,184,0,0.7)' : 'rgba(255,255,255,0.35)', fontFamily: 'monospace', letterSpacing: '0.05em', pointerEvents: 'none' }}>{streamError ? '⚠ DEMO' : '⛶ EXPAND'}</div>
+                <video
+                    src={`/demo.mp4#t=${(cam.offset || 0)}`}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85, zIndex: 0 }}
+                />
+                {/* YOLO LIVE badge */}
+                <div style={{ position: 'absolute', top: 4, right: 5, zIndex: 4, background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(0,255,157,0.3)', borderRadius: 4, padding: '1px 5px', fontSize: '0.38rem', color: '#00ff9d', fontFamily: 'monospace', letterSpacing: '0.05em', pointerEvents: 'none' }}>⛶ EXPAND</div>
                 {/* Scanline overlay */}
                 <div style={{ position: 'absolute', left: 0, right: 0, height: 1.5, background: 'rgba(0,245,255,0.38)', animation: 'scanline 2.2s linear infinite', boxShadow: '0 0 5px #00f5ff', zIndex: 2 }} />
                 {/* Grid overlay */}
@@ -245,12 +236,17 @@ function CameraCard({ cam, density, signal, timer, event, emergency, manualOverr
 
             {/* Density bar */}
             <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.55rem', color: 'rgba(255,255,255,0.28)', marginBottom: 3 }}>
-                    <span>Density</span>
-                    <span style={{ color: barColor, fontWeight: 700, fontFamily: 'monospace' }}>{density}%</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.55rem', color: 'rgba(255,255,255,0.28)', marginBottom: 3, fontFamily: 'monospace' }}>
+                    <span>
+                        <span style={{ color: '#00f5ff' }}>N/S {ns_density}%</span>
+                        <span style={{ margin: '0 5px', color: 'rgba(255,255,255,0.15)' }}>|</span>
+                        <span style={{ color: '#a78bfa' }}>E/W {ew_density}%</span>
+                    </span>
+                    <span style={{ color: barColor, fontWeight: 700 }}>Avg {density}%</span>
                 </div>
-                <div style={{ height: 4, background: 'rgba(255,255,255,0.04)', borderRadius: 4, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${density}%`, background: barColor, borderRadius: 4, boxShadow: `0 0 5px ${barColor}55`, transition: 'width 0.9s ease, background 0.5s ease' }} />
+                <div style={{ height: 4, background: 'rgba(255,255,255,0.04)', borderRadius: 4, overflow: 'hidden', display: 'flex' }}>
+                    <div style={{ height: '100%', width: `${ns_density}%`, background: '#00f5ff', boxShadow: `0 0 5px #00f5ff55`, transition: 'width 0.9s ease, background 0.5s ease' }} />
+                    <div style={{ height: '100%', width: `${ew_density}%`, background: '#a78bfa', boxShadow: `0 0 5px #a78bfa55`, transition: 'width 0.9s ease, background 0.5s ease', opacity: 0.8 }} />
                 </div>
             </div>
 
@@ -307,6 +303,8 @@ export default function YoloFailsafePanel({ cityName = 'Delhi' }) {
 
     const [cams, setCams] = useState(() => cameras.map((_, i) => ({
         density:       [78, 62, 45, 31, 87, 55][i] ?? 50,
+        ns_density:    [80, 60, 45, 30, 85, 50][i] ?? 50,
+        ew_density:    [75, 65, 45, 32, 90, 60][i] ?? 50,
         phase:         ['green', 'yellow', 'red', 'green', 'yellow', 'red'][i],
         timer:         [20, 5, 15, 20, 5, 15][i],
         event:         null,
@@ -327,6 +325,8 @@ export default function YoloFailsafePanel({ cityName = 'Delhi' }) {
     useEffect(() => {
         setCams(cameras.map((_, i) => ({
             density:       [78, 62, 45, 31, 87, 55][i] ?? 50,
+            ns_density:    [80, 60, 45, 30, 85, 50][i] ?? 50,
+            ew_density:    [75, 65, 45, 32, 90, 60][i] ?? 50,
             phase:         ['green', 'yellow', 'red', 'green', 'yellow', 'red'][i],
             timer:         [20, 5, 15, 20, 5, 15][i],
             event:         null,
@@ -360,12 +360,17 @@ export default function YoloFailsafePanel({ cityName = 'Delhi' }) {
             if (pausedRef.current) return;
             setCams(prev => prev.map(c => {
                 if (c.emergency !== null || c.manualOverride !== null || c.iotOverride !== null) return c;
-                let { phase, timer } = c;
+                let { phase, timer, ns_density, ew_density } = c;
                 timer -= 1;
                 if (timer <= 0) {
+                    // Dynamic cycle logic: total green+red = 35s. Base green = 20, base red = 15
+                    const ratio = ns_density / Math.max(1, ns_density + ew_density);
+                    const nsGreenTimer = Math.max(10, Math.min(30, Math.round(35 * ratio)));
+                    const ewGreenTimer = Math.max(10, Math.min(30, Math.round(35 * (1 - ratio))));
+                    
                     if (phase === 'green')  { phase = 'yellow'; timer = CYCLE.yellow; }
-                    else if (phase === 'yellow') { phase = 'red';    timer = CYCLE.red;    }
-                    else                   { phase = 'green';  timer = CYCLE.green;  }
+                    else if (phase === 'yellow') { phase = 'red';    timer = ewGreenTimer;    }
+                    else                   { phase = 'green';  timer = nsGreenTimer;  }
                 }
                 return { ...c, phase, timer };
             }));
@@ -469,7 +474,12 @@ export default function YoloFailsafePanel({ cityName = 'Delhi' }) {
                     if (!snap.exists()) return;
                     const data = snap.data();
                     setCams(prev => prev.map((c, idx) => idx === i
-                        ? { ...c, density: data.density_pct ?? c.density }
+                        ? { 
+                            ...c, 
+                            density: data.density_pct ?? c.density,
+                            ns_density: data.ns_density_pct ?? c.ns_density,
+                            ew_density: data.ew_density_pct ?? c.ew_density,
+                          }
                         : c
                     ));
                 },
@@ -568,6 +578,8 @@ export default function YoloFailsafePanel({ cityName = 'Delhi' }) {
                         key={cameras[i].id}
                         cam={cameras[i]}
                         density={c.density}
+                        ns_density={c.ns_density}
+                        ew_density={c.ew_density}
                         signal={c.phase}
                         timer={c.timer}
                         event={c.event}

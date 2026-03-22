@@ -12,14 +12,14 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
     return (
-        <html lang="en">
+        <html lang="en" suppressHydrationWarning>
             <head>
                 <link
                     href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
                     rel="stylesheet"
                 />
             </head>
-            <body className="bg-bg-deep text-text-primary font-sans overflow-x-hidden min-h-screen">
+            <body suppressHydrationWarning className="bg-bg-deep text-text-primary font-sans overflow-x-hidden min-h-screen">
                 <LanguageProvider>
                     <LanguagePicker />
                     <AuthProvider>

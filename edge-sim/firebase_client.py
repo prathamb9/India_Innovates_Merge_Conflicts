@@ -81,6 +81,8 @@ def push_stats(node_id: str, stats: dict):
         "node_name":       stats.get("node_name", node_id),
         "vehicle_count":   stats.get("vehicle_count", 0),
         "density_pct":     stats.get("density_pct", 0),
+        "ns_density_pct":  stats.get("ns_density_pct", 0),
+        "ew_density_pct":  stats.get("ew_density_pct", 0),
         "class_breakdown": stats.get("class_breakdown", {}),
         "updated_at":      datetime.now(timezone.utc).isoformat(),
         "source":          "edge-ai-streamer",
