@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     cors_origins: List[str] = ["http://localhost:3000"]
 
     # Database
-    database_url: str = "postgresql+asyncpg://user:password@localhost:5432/signalsync"
+    database_url: str = "postgresql+asyncpg://signalsync:signalsync_dev@localhost:5432/signalsync"
 
     # Redis
     redis_url: str = "redis://localhost:6379/0"
