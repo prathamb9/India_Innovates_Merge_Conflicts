@@ -6,13 +6,13 @@
 
 /* ── CSS Custom Properties ── */
 :root {
-    --accent-cyan: #22d3ee;
+    --accent-cyan: #67e8f9;
     --accent-green: #4ade80;
     --accent-amber: #fbbf24;
     --accent-red: #f87171;
     --accent-violet: #a78bfa;
     --border: rgba(255, 255, 255, 0.07);
-    --border-active: rgba(34, 211, 238, 0.4);
+    --border-active: rgba(103, 232, 249, 0.4);
 }
 
 /* ── Scrollbar ── */
@@ -59,12 +59,12 @@
 
 /* ── Text helpers ── */
 .grad-text { color: var(--accent-cyan); }
-.grad-text-cyan { color: #22d3ee; }
+.grad-text-cyan { color: #67e8f9; }
 
 /* ── Gradient divider ── */
 .g-divider {
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(34,211,238,0.2), transparent);
+    background: linear-gradient(90deg, transparent, rgba(103,232,249,0.2), transparent);
 }
 
 /* ── Glow blob ── */
@@ -104,15 +104,15 @@ select option {
 .tl-light-active-green { background: #4ade80; box-shadow: 0 0 8px rgba(74,222,128,0.5); }
 
 /* ── Progress fill ── */
-.progress-fill-cyan { background: #22d3ee; }
+.progress-fill-cyan { background: #67e8f9; }
 .progress-fill-green { background: #4ade80; }
 .progress-fill-amber { background: #fbbf24; }
 .progress-fill-red { background: #f87171; }
 
 /* ── Formula ── */
 .formula-box {
-    background: rgba(34,211,238,0.04);
-    border: 1px solid rgba(34,211,238,0.12);
+    background: rgba(103,232,249,0.04);
+    border: 1px solid rgba(103,232,249,0.12);
     border-radius: 12px;
     padding: 24px;
     text-align: center;
@@ -121,7 +121,7 @@ select option {
 /* ── Corridor node ── */
 .cnode-active { background: rgba(74,222,128,0.06); border-color: rgba(74,222,128,0.18); }
 .cnode-preparing { background: rgba(251,191,36,0.06); border-color: rgba(251,191,36,0.18); }
-.cnode-pending { background: rgba(34,211,238,0.03); border-color: rgba(34,211,238,0.10); }
+.cnode-pending { background: rgba(103,232,249,0.03); border-color: rgba(103,232,249,0.10); }
 
 /* ── Toast ── */
 .toast {
