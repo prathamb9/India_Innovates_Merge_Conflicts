@@ -1,7 +1,8 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { useAuth } from '@/components/AuthProvider';
 
 const SIG_COLOR = { green: '#00ff9d', yellow: '#ffb800', red: '#ff3b5c' };
 const SIG_GLOW  = { green: '0 0 12px #00ff9d99', yellow: '0 0 12px #ffb80099', red: '0 0 12px #ff3b5c99' };
@@ -121,28 +122,20 @@ function DirectionPanel({ direction, signalState }) {
 
     return (
         <div style={{ position: 'relative', overflow: 'hidden', background: '#050a14',
-            outline: `2px solid ${isGreen ? 'rgba(0,255,157,0.55)' : isRed ? 'rgba(255,59,92,0.4)' : 'rgba(255,184,0,0.4)'}`,
+            outline: `2px solid ${isGreen ? 'rgba(0,255,157,0.5)' : isRed ? 'rgba(255,59,92,0.35)' : 'rgba(255,184,0,0.35)'}`,
             transition: 'outline-color 0.4s ease' }}>
 
-            {/* Real YOLO MJPEG stream */}
+            {/* Real YOLO MJPEG stream — no color tint */}
             {streamOk ? (
                 <img src={streamUrl} alt={`${direction.id} YOLO`}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block',
-                        filter: isRed ? 'brightness(0.55) saturate(0.4)' : isYellow ? 'brightness(0.82)' : 'brightness(1)',
-                        transition: 'filter 0.5s ease' }}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                     onError={() => setStreamOk(false)} />
             ) : (
                 <video src="/demo.mp4" autoPlay loop muted playsInline
-                    style={{ width: '100%', height: '100%', objectFit: 'cover',
-                        filter: isRed ? 'brightness(0.55) saturate(0.4)' : 'brightness(1)',
-                        transition: 'filter 0.5s ease' }} />
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             )}
 
-            {/* Signal tint overlay */}
-            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 2, transition: 'background 0.5s ease',
-                background: isGreen ? 'rgba(0,255,157,0.08)' : isRed ? 'rgba(255,59,92,0.2)' : 'rgba(255,184,0,0.1)' }} />
-
-            {/* Traffic status banner  center bottom */}
+            {/* Traffic status banner — center bottom */}
             <div style={{ position: 'absolute', bottom: 36, left: '50%', transform: 'translateX(-50%)', zIndex: 5,
                 background: isGreen ? 'rgba(0,255,157,0.92)' : isRed ? 'rgba(200,30,50,0.92)' : 'rgba(200,140,0,0.92)',
                 borderRadius: 6, padding: '3px 12px', whiteSpace: 'nowrap',
@@ -187,8 +180,28 @@ function DirectionPanel({ direction, signalState }) {
 /* -- Main Modal --------------------------------------------------------------- */
 export default function IntersectionModal({ cam, camState, onClose }) {
     const [firestoreStats, setFirestoreStats] = useState(null);
-    // Live signal state from the edge AI pipeline
-    const [signalState, setSignalState] = useState(null);
+    const [signalState,    setSignalState]    = useState(null);
+    const { user } = useAuth();
+    const isAdmin = user?.role === 'admin' || user?.email?.endsWith('@signalsync.in');
+    const [overrideAxis,  setOverrideAxis]  = useState('ns');
+    const [overridePhase, setOverridePhase] = useState('green');
+    const [overrideDur,   setOverrideDur]   = useState(30);
+    const [overrideMsg,   setOverrideMsg]   = useState('');
+
+    async function applyOverride() {
+        setOverrideMsg('Sending...');
+        try {
+            const res = await fetch(`${STREAM_BASE}/signal_override`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer admin-token-signalsync' },
+                body: JSON.stringify({ phase: overridePhase, axis: overrideAxis, duration: overrideDur }),
+            });
+            const data = await res.json();
+            setOverrideMsg(res.ok ? `Locked ${overridePhase.toUpperCase()} on ${overrideAxis.toUpperCase()} for ${data.duration}s` : data.error || 'Error');
+        } catch { setOverrideMsg('Connection failed'); }
+        setTimeout(() => setOverrideMsg(''), 4000);
+    }
+
 
     // Firestore real-time stats per camera node
     useEffect(() => {
@@ -390,6 +403,58 @@ export default function IntersectionModal({ cam, camState, onClose }) {
                         </div>
 
                         <div style={{ padding: '12px 16px', flex: 1 }} />
+
+                        {/* Admin-only Manual Override */}
+                        {isAdmin && (
+                            <div style={{ padding: '12px 16px', borderTop: '1px solid rgba(255,59,92,0.2)', background: 'rgba(255,59,92,0.03)' }}>
+                                <div style={{ fontSize: '0.48rem', color: '#ff3b5c', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700, marginBottom: 8 }}>Admin — Manual Override</div>
+                                {/* Axis */}
+                                <div style={{ display: 'flex', gap: 4, marginBottom: 6 }}>
+                                    {['ns','ew'].map(a => (
+                                        <button key={a} onClick={() => setOverrideAxis(a)} style={{
+                                            flex: 1, padding: '4px 0', fontSize: '0.55rem', fontWeight: 800,
+                                            fontFamily: 'monospace', borderRadius: 5, cursor: 'pointer', border: 'none',
+                                            background: overrideAxis === a ? 'rgba(0,245,255,0.2)' : 'rgba(255,255,255,0.04)',
+                                            color: overrideAxis === a ? '#00f5ff' : 'rgba(255,255,255,0.35)',
+                                            outline: overrideAxis === a ? '1px solid #00f5ff55' : 'none',
+                                        }}>{a.toUpperCase()} Axis</button>
+                                    ))}
+                                </div>
+                                {/* Phase */}
+                                <div style={{ display: 'flex', gap: 4, marginBottom: 6 }}>
+                                    {['green','yellow','red'].map(p => (
+                                        <button key={p} onClick={() => setOverridePhase(p)} style={{
+                                            flex: 1, padding: '4px 0', fontSize: '0.52rem', fontWeight: 800,
+                                            fontFamily: 'monospace', borderRadius: 5, cursor: 'pointer', border: 'none',
+                                            background: overridePhase === p ? `${SIG_COLOR[p]}33` : 'rgba(255,255,255,0.04)',
+                                            color: overridePhase === p ? SIG_COLOR[p] : 'rgba(255,255,255,0.35)',
+                                            outline: overridePhase === p ? `1px solid ${SIG_COLOR[p]}55` : 'none',
+                                        }}>{p.toUpperCase()}</button>
+                                    ))}
+                                </div>
+                                {/* Duration */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                                    <span style={{ fontSize: '0.48rem', color: 'rgba(255,255,255,0.25)' }}>Duration</span>
+                                    <input type="range" min={5} max={120} value={overrideDur}
+                                        onChange={e => setOverrideDur(Number(e.target.value))}
+                                        style={{ flex: 1, accentColor: '#ff3b5c', height: 3 }} />
+                                    <span style={{ fontSize: '0.52rem', fontFamily: 'monospace', color: '#ff3b5c', minWidth: 28 }}>{overrideDur}s</span>
+                                </div>
+                                {/* Apply */}
+                                <button onClick={applyOverride} style={{
+                                    width: '100%', padding: '6px 0', fontSize: '0.56rem', fontWeight: 800,
+                                    fontFamily: 'monospace', letterSpacing: '0.06em', borderRadius: 6,
+                                    cursor: 'pointer', border: '1px solid rgba(255,59,92,0.4)',
+                                    background: 'rgba(255,59,92,0.15)', color: '#ff3b5c',
+                                }}>APPLY OVERRIDE</button>
+                                {overrideMsg && (
+                                    <div style={{ marginTop: 5, fontSize: '0.44rem', color: overrideMsg.startsWith('Locked') ? '#00ff9d' : '#ff3b5c', fontFamily: 'monospace', textAlign: 'center' }}>
+                                        {overrideMsg}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
 
                         {/* Timestamp */}
                         {firestoreStats?.updated_at && (

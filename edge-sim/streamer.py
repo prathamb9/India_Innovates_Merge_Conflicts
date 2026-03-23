@@ -1,11 +1,11 @@
 """
-SignalSync Edge AI — 4-Direction Pipelined YOLO Streamer
+SignalSync Edge AI  4-Direction Pipelined YOLO Streamer
 =========================================================
 Each intersection direction (NORTH/SOUTH/EAST/WEST) has its own pipeline:
 
-    [Pre-process Thread]  →  YOLO annotate 3.5s batch  →  swap to play buffer
-    [Stream Thread]       →  serve play buffer at 20fps as MJPEG
-    [Signal Controller]   →  compare N/S avg vs E/W avg → assign GREEN/RED
+    [Pre-process Thread]  ->  YOLO annotate 3.5s batch  ->  swap to play buffer
+    [Stream Thread]       ->  serve play buffer at 20fps as MJPEG
+    [Signal Controller]   ->  compare N/S avg vs E/W avg -> assign GREEN/RED
 
 HOW TO RUN:
     cd edge-sim
@@ -19,7 +19,8 @@ import threading
 import argparse
 import collections
 from ultralytics import YOLO  # type: ignore
-from fastapi import FastAPI    # type: ignore
+from fastapi import FastAPI, Header  # type: ignore
+from pydantic import BaseModel  # type: ignore
 from fastapi.responses import StreamingResponse, JSONResponse  # type: ignore
 from fastapi.middleware.cors import CORSMiddleware  # type: ignore
 import uvicorn                # type: ignore
@@ -33,9 +34,9 @@ VEHICLE_CLASSES      = {"car", "motorcycle", "bus", "truck", "bicycle", "van", "
 
 TARGET_FPS    = 20
 BUFFER_SECS   = 3.5                          # pre-process 3.5 s before playing
-BUFFER_FRAMES = int(BUFFER_SECS * TARGET_FPS)  # ≈ 70 frames
+BUFFER_FRAMES = int(BUFFER_SECS * TARGET_FPS)  #  70 frames
 
-# 4 directions — each reads from a different 25% slice of demo.mp4
+# 4 directions  each reads from a different 25% slice of demo.mp4
 DIRECTIONS = [
     {"id": "NORTH", "offset_pct": 0.00, "axis": "ns"},
     {"id": "SOUTH", "offset_pct": 0.25, "axis": "ns"},
@@ -54,7 +55,7 @@ CAMERA_NODES = [
 ]
 
 # ---------------------------------------------------------------------------
-# YOLO model — loaded once, shared across all threads
+# YOLO model  loaded once, shared across all threads
 # ---------------------------------------------------------------------------
 _model      = None
 _model_lock = threading.Lock()
@@ -70,7 +71,7 @@ def get_model():
 
 
 # ---------------------------------------------------------------------------
-# Signal state — shared, protected by lock
+# Signal state  shared, protected by lock
 # ---------------------------------------------------------------------------
 _signal_lock  = threading.Lock()
 _signal_state = {
@@ -100,7 +101,7 @@ class DirectionPipeline:
         self.offset_pct = direction["offset_pct"]
         self.video_path = video_path
 
-        # Two deques — one playing, one being filled
+        # Two deques  one playing, one being filled
         self._play_buf  = collections.deque()   # JPEG bytes, currently served
         self._next_buf  = []                    # list being pre-filled
 
@@ -191,7 +192,7 @@ class DirectionPipeline:
                 cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
                 continue
 
-            frame = cv2.resize(frame, (640, 360))
+            frame = cv2.resize(frame, (854, 480))
             frame_idx += 1
 
             # YOLO inference every 4th frame
@@ -221,7 +222,7 @@ class DirectionPipeline:
                 acc_emergency = True
 
             # JPEG encode and push to next_buf
-            _, buf = cv2.imencode(".jpg", ann_frame, [cv2.IMWRITE_JPEG_QUALITY, 75])
+            _, buf = cv2.imencode(".jpg", ann_frame, [cv2.IMWRITE_JPEG_QUALITY, 90])
             self._next_buf.append(buf.tobytes())
 
             # When next_buf has enough frames, swap atomically
@@ -257,7 +258,7 @@ class DirectionPipeline:
 
                 self._swap_event.set()
 
-            # Cap CPU — don't need real-time here, just keep ahead of playback
+            # Cap CPU  don't need real-time here, just keep ahead of playback
             time.sleep(0.01)
 
         cap.release()
@@ -287,7 +288,7 @@ class DirectionPipeline:
                     jpeg_bytes = None
 
             if jpeg_bytes is None:
-                # Buffer depleted — wait for next pre-processed batch
+                # Buffer depleted  wait for next pre-processed batch
                 self._swap_event.clear()
                 self._swap_event.wait(timeout=5)
                 continue
@@ -310,39 +311,46 @@ _pipelines: dict[str, DirectionPipeline] = {}
 
 
 # ---------------------------------------------------------------------------
-# Signal control thread — runs every second
+# Signal control thread  runs every second
 # ---------------------------------------------------------------------------
 def _signal_controller():
     """
-    Every second:
-      1. Read density from each direction pipeline.
-      2. Compare N/S avg vs E/W avg.
-      3. If diff > 10% → dynamic mode (busier axis = GREEN).
-      4. Otherwise → fixed 20/5/15 cycle.
+    Runs every 1s:
+      - Reads N/S and E/W average densities.
+      - If diff > 10%: dynamic mode (busier axis GREEN, other RED).
+      - Otherwise: fixed 20s GREEN / 5s YELLOW / 15s RED cycle,
+        alternating the green_axis on each full cycle.
     """
-    FIXED_CYCLE = {"green": 20, "yellow": 5, "red": 15}
-    fixed_remaining = FIXED_CYCLE["green"]
-    fixed_phase = "green"
+    FIXED_GREEN  = 20
+    FIXED_YELLOW = 5
+    FIXED_RED    = 15
+
+    fixed_phase     = "green"
+    fixed_remaining = FIXED_GREEN
     EQUAL_THRESHOLD = 10
 
     while True:
         time.sleep(1)
 
+        # Check for admin override
+        with _signal_lock:
+            override = _signal_state.get("override_remaining", 0)
+            if override > 0:
+                _signal_state["override_remaining"] = override - 1
+                # Just tick the override timer down, don't touch phase
+                _signal_state["phase_timer"] = override - 1
+                continue
+
         # Collect densities
-        ns_density = 0
-        ew_density = 0
-        ns_count   = 0
-        ew_count   = 0
+        ns_density = ew_density = ns_count = ew_count = 0
         for d in DIRECTIONS:
             pipe = _pipelines.get(d["id"])
             if pipe:
                 s = pipe.get_stats()
                 if d["axis"] == "ns":
-                    ns_density += s.get("density_pct", 0)
-                    ns_count   += 1
+                    ns_density += s.get("density_pct", 0); ns_count += 1
                 else:
-                    ew_density += s.get("density_pct", 0)
-                    ew_count   += 1
+                    ew_density += s.get("density_pct", 0); ew_count += 1
 
         avg_ns = int(ns_density / max(ns_count, 1))
         avg_ew = int(ew_density / max(ew_count, 1))
@@ -353,30 +361,37 @@ def _signal_controller():
             _signal_state["ew_density"] = avg_ew
 
             if diff > EQUAL_THRESHOLD:
-                # Dynamic mode: busier axis gets GREEN
+                # Dynamic mode
                 green_axis = "ns" if avg_ns > avg_ew else "ew"
-                _signal_state["green_axis"] = green_axis
-                _signal_state["mode"]       = "dynamic"
-                _signal_state["phase"]      = "green"
-                _signal_state["phase_timer"]= 0
+                _signal_state["mode"]        = "dynamic"
+                _signal_state["green_axis"]  = green_axis
+                _signal_state["phase"]       = "green"
+                _signal_state["phase_timer"] = 0
+                # Reset fixed-cycle so next fixed cycle starts fresh
+                fixed_phase     = "green"
+                fixed_remaining = FIXED_GREEN
             else:
-                # Fixed cycle mode
+                # Fixed cycle mode — decrement timer
                 _signal_state["mode"] = "fixed"
                 fixed_remaining -= 1
+
                 if fixed_remaining <= 0:
                     if fixed_phase == "green":
-                        fixed_phase = "yellow"
-                        fixed_remaining = FIXED_CYCLE["yellow"]
+                        # GREEN done -> YELLOW
+                        fixed_phase     = "yellow"
+                        fixed_remaining = FIXED_YELLOW
                     elif fixed_phase == "yellow":
-                        fixed_phase = "red"
-                        fixed_remaining = FIXED_CYCLE["red"]
-                        # Flip green axis on red→green transition
+                        # YELLOW done -> RED; swap green_axis NOW so the
+                        # other axis starts showing green when phase flips to green
+                        fixed_phase     = "red"
+                        fixed_remaining = FIXED_RED
                         _signal_state["green_axis"] = (
                             "ew" if _signal_state["green_axis"] == "ns" else "ns"
                         )
                     else:
-                        fixed_phase = "green"
-                        fixed_remaining = FIXED_CYCLE["green"]
+                        # RED done -> GREEN
+                        fixed_phase     = "green"
+                        fixed_remaining = FIXED_GREEN
 
                 _signal_state["phase"]       = fixed_phase
                 _signal_state["phase_timer"] = fixed_remaining
@@ -390,7 +405,7 @@ app = FastAPI(title="SignalSync 4-Direction Pipelined Streamer")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 
@@ -416,7 +431,7 @@ def video_feed(direction_id: str):
 
 @app.get("/video_feed")
 def video_feed_default():
-    """Backwards-compatible fallback — serves NORTH stream."""
+    """Backwards-compatible fallback  serves NORTH stream."""
     pipe = _pipelines.get("NORTH") or next(iter(_pipelines.values()), None)
     if not pipe:
         return JSONResponse({"error": "Not ready"}, status_code=503)
@@ -428,19 +443,39 @@ def video_feed_default():
 
 @app.get("/signal_state")
 def signal_state():
-    """
-    Returns the current signal assignment:
-    {
-        green_axis: "ns" | "ew",
-        mode: "dynamic" | "fixed",
-        ns_density: int,
-        ew_density: int,
-        phase: "green" | "yellow" | "red",   (only in fixed mode)
-        phase_timer: int                       (seconds remaining)
-    }
-    """
     with _signal_lock:
         return dict(_signal_state)
+
+
+# Admin-only signal override
+ADMIN_TOKEN = "admin-token-signalsync"   # in production: use env var
+
+class OverrideRequest(BaseModel):
+    phase: str        # "green" | "yellow" | "red"
+    axis:  str        # "ns"    | "ew"
+    duration: int = 30   # seconds to hold override
+
+@app.post("/signal_override")
+def signal_override(req: OverrideRequest, authorization: str = Header(default="")):
+    """Admin-only: manually force a signal phase for `duration` seconds."""
+    token = authorization.replace("Bearer ", "").strip()
+    if token != ADMIN_TOKEN:
+        return JSONResponse({"error": "Unauthorized — admin token required"}, status_code=403)
+
+    if req.phase not in ("green", "yellow", "red"):
+        return JSONResponse({"error": "Invalid phase"}, status_code=400)
+    if req.axis not in ("ns", "ew"):
+        return JSONResponse({"error": "Invalid axis"}, status_code=400)
+    duration = max(5, min(req.duration, 120))
+
+    with _signal_lock:
+        _signal_state["mode"]              = "override"
+        _signal_state["phase"]             = req.phase
+        _signal_state["green_axis"]        = req.axis
+        _signal_state["phase_timer"]       = duration
+        _signal_state["override_remaining"] = duration
+
+    return {"ok": True, "phase": req.phase, "axis": req.axis, "duration": duration}
 
 
 @app.get("/stats")
@@ -519,11 +554,11 @@ if __name__ == "__main__":
     for d_id, pipe in _pipelines.items():
         filled = pipe._swap_event.wait(timeout=60)
         if filled:
-            print(f"[Streamer] {d_id} ✓ ready")
+            print(f"[Streamer] {d_id}  ready")
         else:
-            print(f"[Streamer] {d_id} ✗ timeout — will stream when available")
+            print(f"[Streamer] {d_id}  timeout  will stream when available")
 
-    # Firebase periodic push (optional) — runs in its own thread
+    # Firebase periodic push (optional)  runs in its own thread
     if use_firebase and fb_module:
         def _firebase_push_loop():
             PUSH_EVERY = 2.0
