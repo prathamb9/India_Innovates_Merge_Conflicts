@@ -30,7 +30,7 @@ if (-not (Test-Path (Join-Path $backendDir "venv\Scripts\python.exe"))) {
     Start-Process "cmd.exe" -ArgumentList "/c cd /d `"$backendDir`" && python -m venv venv" -WindowStyle Normal -Wait
 }
 
-Start-Process "cmd.exe" -ArgumentList "/k cd /d `"$backendDir`" && call venv\Scripts\activate.bat && pip install -r requirements.txt && uvicorn app.main:app --reload --port 8080" -WindowStyle Normal
+Start-Process "cmd.exe" -ArgumentList "/k cd /d `"$backendDir`" && call venv\Scripts\activate.bat && pip install -r requirements.txt && python -m uvicorn app.main:app --reload --port 8080" -WindowStyle Normal
 
 Start-Sleep -Seconds 2
 

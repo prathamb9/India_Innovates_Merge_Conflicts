@@ -1,4 +1,4 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+﻿from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from app.websocket.manager import ws_manager
 
 router = APIRouter(prefix="/ws", tags=["websocket"])
@@ -11,7 +11,7 @@ async def ws_intersection(ws: WebSocket, intersection_id: int):
     await ws_manager.connect(ws, room)
     try:
         while True:
-            # Keep alive — client can ping, we echo
+            # Keep alive  client can ping, we echo
             data = await ws.receive_text()
             await ws.send_text(data)
     except WebSocketDisconnect:

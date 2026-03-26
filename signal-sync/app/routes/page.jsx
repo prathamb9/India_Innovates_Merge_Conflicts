@@ -6,12 +6,13 @@ import StatusDot from '@/components/StatusDot';
 import { useJsApiLoader, Autocomplete } from '@react-google-maps/api';
 import { MAPS_LIBRARIES } from '@/components/DelhiMap';
 import { useRef, useState, useCallback } from 'react';
+import { useLanguage } from '@/components/LanguageProvider';
 
 const DelhiMap = dynamic(() => import('@/components/DelhiMap'), {
     ssr: false,
     loading: () => (
         <div style={{ height: '420px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#050c18', borderRadius: '12px', color: '#00f5ff' }}>
-            Loading map…
+            Loading map
         </div>
     )
 });
@@ -48,6 +49,7 @@ function PlaceInput({ label, placeholder, cityBounds, onPlaceSelect, keyId }) {
 }
 
 export default function RoutesPage() {
+    const { t } = useLanguage();
     const { isLoaded: mapsLoaded } = useJsApiLoader({
         id: 'google-map-script',
         googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
@@ -74,34 +76,34 @@ export default function RoutesPage() {
             <div className="grid-bg" />
             <nav className="relative z-10 flex items-center justify-between px-8 py-3.5 bg-bg-deep/95 border-b border-white/5 backdrop-blur-xl">
                 <Link href="/" className="flex items-center gap-2.5 font-extrabold text-xl no-underline text-white">
-                    <div className="w-8 h-8 rounded-[6px] bg-gradient-to-br from-accent-cyan to-accent-violet flex items-center justify-center neon-cyan">⬡</div>
+                    <div className="w-8 h-8 rounded-[6px] bg-gradient-to-br from-accent-cyan to-accent-violet flex items-center justify-center neon-cyan"></div>
                     <span><span className="text-accent-cyan">Signal</span>Sync</span>
                 </Link>
                 <div className="flex items-center gap-2.5">
-                    <Badge variant="cyan"><StatusDot color="cyan" className="mr-1" />Live Traffic</Badge>
-                    <span className="text-text-muted text-xs">Route Finder — No sign-in needed</span>
+                    <Badge variant="cyan"><StatusDot color="cyan" className="mr-1" />{t('liveTraffic') || 'Live Traffic'}</Badge>
+                    <span className="text-text-muted text-xs">{t('routeFinderLink')}  {t('noAccountRequired')}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Link href="/dashboard" className="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 border border-white/5 text-text-primary no-underline">Dashboard</Link>
-                    <Link href="/portal" className="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-accent-cyan/10 border border-accent-cyan/30 text-accent-cyan no-underline">Emergency Portal</Link>
-                    <Link href="/" className="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 border border-white/5 text-text-primary no-underline">← Home</Link>
+                    <Link href="/dashboard" className="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 border border-white/5 text-text-primary no-underline">{t('dashboardLink')}</Link>
+                    <Link href="/portal" className="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-accent-cyan/10 border border-accent-cyan/30 text-accent-cyan no-underline">{t('portalLink')}</Link>
+                    <Link href="/" className="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 border border-white/5 text-text-primary no-underline"> {t('homeLink')}</Link>
                 </div>
             </nav>
 
             <div className="relative z-10 max-w-[1400px] mx-auto px-8 py-10">
                 <div className="mb-6">
-                    <h1 className="text-3xl font-extrabold mb-2">Route Finder</h1>
-                    <p className="text-text-secondary">Find the fastest route with live Delhi traffic data. No sign-in required.</p>
+                    <h1 className="text-3xl font-extrabold mb-2">{t('routeFinderTitle')}</h1>
+                    <p className="text-text-secondary">{t('routeFinderSub')}</p>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-6">
-                    {/* LEFT – Input panel */}
+                    {/* LEFT  Input panel */}
                     <div className="bg-bg-card border border-white/5 rounded-xl p-6 flex flex-col gap-4 h-fit">
-                        <h2 className="text-base font-bold">Find Best Route</h2>
+                        <h2 className="text-base font-bold">{t('findRoute') || 'Find Best Route'}</h2>
 
                         {/* City */}
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">City</label>
+                            <label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">{t('selectCity')}</label>
                             <select className="input-field" value={city}
                                 onChange={e => { setCity(e.target.value); reset(); }}
                                 style={{ color: '#0f172a', background: '#f8fafc' }}>
@@ -111,24 +113,24 @@ export default function RoutesPage() {
 
                         {/* Origin */}
                         {mapsLoaded ? (
-                            <PlaceInput key={`ro-${city}`} label="Starting Point" placeholder={`Where from in ${city}?`} cityBounds={cityBounds} onPlaceSelect={p => { setOriginLatLng({ lat: p.lat, lng: p.lng }); setOriginName(p.name); setShowRoute(false); setRouteInfo(null); }} />
-                        ) : <div className="flex flex-col gap-1.5"><label className="text-[0.78rem] font-semibold text-text-secondary uppercase">Starting Point</label><input disabled className="input-field opacity-50" placeholder="Loading Maps..." /></div>}
+                            <PlaceInput key={`ro-${city}`} label={t('origin')} placeholder={`${city}...`} cityBounds={cityBounds} onPlaceSelect={p => { setOriginLatLng({ lat: p.lat, lng: p.lng }); setOriginName(p.name); setShowRoute(false); setRouteInfo(null); }} />
+                        ) : <div className="flex flex-col gap-1.5"><label className="text-[0.78rem] font-semibold text-text-secondary uppercase">{t('origin')}</label><input disabled className="input-field opacity-50" placeholder="Loading Maps..." /></div>}
 
                         <div className="flex items-center gap-2.5">
                             <div className="flex-1 h-px bg-white/10" />
                             <button onClick={() => { const ol = originLatLng, on = originName; setOriginLatLng(destLatLng); setDestLatLng(ol); setOriginName(destName); setDestName(on); reset(); }}
-                                className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 text-text-secondary font-sans cursor-pointer">⇅</button>
+                                className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 text-text-secondary font-sans cursor-pointer"></button>
                             <div className="flex-1 h-px bg-white/10" />
                         </div>
 
                         {/* Destination */}
                         {mapsLoaded ? (
-                            <PlaceInput key={`rd-${city}`} label="Destination" placeholder={`Where to in ${city}?`} cityBounds={cityBounds} onPlaceSelect={p => { setDestLatLng({ lat: p.lat, lng: p.lng }); setDestName(p.name); setShowRoute(false); setRouteInfo(null); }} />
-                        ) : <div className="flex flex-col gap-1.5"><label className="text-[0.78rem] font-semibold text-text-secondary uppercase">Destination</label><input disabled className="input-field opacity-50" placeholder="Loading Maps..." /></div>}
+                            <PlaceInput key={`rd-${city}`} label={t('destination')} placeholder={`${city}...`} cityBounds={cityBounds} onPlaceSelect={p => { setDestLatLng({ lat: p.lat, lng: p.lng }); setDestName(p.name); setShowRoute(false); setRouteInfo(null); }} />
+                        ) : <div className="flex flex-col gap-1.5"><label className="text-[0.78rem] font-semibold text-text-secondary uppercase">{t('destination')}</label><input disabled className="input-field opacity-50" placeholder="Loading Maps..." /></div>}
 
                         <button onClick={calcRoute} disabled={calculating || !originLatLng || !destLatLng}
                             className="w-full py-3.5 rounded-xl font-bold bg-gradient-to-br from-accent-cyan to-[#0099cc] text-black disabled:opacity-50 hover:shadow-[0_0_20px_rgba(0,245,255,0.4)] transition-all font-sans cursor-pointer">
-                            {calculating ? 'Routing...' : 'Get Best Route'}
+                            {calculating ? t('findingRoute') : t('findRoute')}
                         </button>
 
                         {/* Result summary */}
@@ -137,11 +139,11 @@ export default function RoutesPage() {
                                 <div className="text-[0.7rem] text-text-muted uppercase tracking-widest">Traffic-Aware Route</div>
                                 <div className="flex gap-3">
                                     <div className="flex-1 bg-white/[0.02] border border-white/10 rounded-xl p-3 text-center">
-                                        <div className="text-[0.65rem] text-text-muted mb-1">Distance</div>
+                                        <div className="text-[0.65rem] text-text-muted mb-1">{t('distance')}</div>
                                         <div className="font-bold font-mono text-accent-cyan">{routeInfo.distanceText}</div>
                                     </div>
                                     <div className="flex-1 bg-white/[0.02] border border-white/10 rounded-xl p-3 text-center">
-                                        <div className="text-[0.65rem] text-text-muted mb-1">ETA w/ Traffic</div>
+                                        <div className="text-[0.65rem] text-text-muted mb-1">{t('duration')}</div>
                                         <div className="font-bold font-mono text-accent-amber">{routeInfo.durationText}</div>
                                     </div>
                                 </div>
@@ -157,18 +159,18 @@ export default function RoutesPage() {
                                     </div>
                                 </div>
                                 <div className="text-center">
-                                    <Link href="/portal" className="text-xs text-accent-cyan no-underline hover:underline">Need priority? Create a Green Corridor →</Link>
+                                    <Link href="/portal" className="text-xs text-accent-cyan no-underline hover:underline">Need priority? Create a Green Corridor {'->'} </Link>
                                 </div>
                             </div>
                         )}
                     </div>
 
-                    {/* RIGHT – Map */}
+                    {/* RIGHT  Map */}
                     <div className="bg-bg-card border border-white/5 rounded-xl p-5">
                         <div className="flex justify-between items-center mb-3">
                             <div>
-                                <h3 className="text-base font-bold">Live Traffic Map</h3>
-                                <p className="text-text-secondary text-xs">{showRoute && originName ? `${originName} → ${destName}` : 'Select origin and destination above'}</p>
+                                <h3 className="text-base font-bold">{t('trafficMapTitle', city) || `${city} ${t('trafficMapTitle') || 'Traffic Map'}`}</h3>
+                                <p className="text-text-secondary text-xs">{showRoute && originName ? `${originName} -> ${destName}` : t('selectOriginDest')}</p>
                             </div>
                             <Badge variant="cyan"><StatusDot color="cyan" className="mr-1" />Live</Badge>
                         </div>

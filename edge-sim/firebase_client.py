@@ -1,15 +1,15 @@
-"""
-SignalSync Edge AI Simulator — Firebase Client
+﻿"""
+SignalSync Edge AI Simulator  Firebase Client
 =============================================
 Connects the Python edge node to Firebase Firestore using a Service Account key.
 When an ambulance is detected by YOLO, this module pushes an override event
 to Firestore which the Next.js dashboard listens to via onSnapshot().
 
 SETUP:
-1. Go to Firebase Console → Project Settings → Service Accounts
+1. Go to Firebase Console -> Project Settings -> Service Accounts
 2. Click "Generate new private key"
 3. Save the file as  edge-sim/serviceAccountKey.json
-   (This file is in .gitignore — never commit it)
+   (This file is in .gitignore  never commit it)
 """
 
 import firebase_admin  # type: ignore
@@ -27,7 +27,7 @@ def _get_db():
         if not os.path.exists(key_path):
             raise FileNotFoundError(
                 "\n\nMissing  edge-sim/serviceAccountKey.json\n"
-                "Download it from Firebase Console → Project Settings → Service Accounts → Generate new private key\n"
+                "Download it from Firebase Console -> Project Settings -> Service Accounts -> Generate new private key\n"
             )
         if not firebase_admin._apps:
             cred = credentials.Certificate(key_path)
@@ -51,7 +51,7 @@ def push_emergency(node_id: str, node_name: str, confidence: float):
         "source": "edge-ai-simulator",
     }
     db.collection("edge_events").add(doc)
-    print(f"[Firebase] Pushed: {node_id} — {node_name} — EMERGENCY conf={confidence:.1f}%")
+    print(f"[Firebase] Pushed: {node_id}  {node_name}  EMERGENCY conf={confidence:.1f}%")
 
 
 def push_clear(node_id: str):
@@ -66,7 +66,7 @@ def push_clear(node_id: str):
         "source": "edge-ai-simulator",
     }
     db.collection("edge_events").add(doc)
-    print(f"[Firebase] Pushed: {node_id} — CLEAR")
+    print(f"[Firebase] Pushed: {node_id}  CLEAR")
 
 
 def push_stats(node_id: str, stats: dict):

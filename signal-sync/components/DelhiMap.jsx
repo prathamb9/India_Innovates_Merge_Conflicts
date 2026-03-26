@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
     useJsApiLoader,
@@ -9,6 +9,7 @@ import {
     Circle,
     OverlayView,
 } from '@react-google-maps/api';
+import { nodesOnPolyline, pickCorridorNodes } from '@/lib/cityNodes';
 
 // Keep exported for any external consumers (legacy usage)
 export const DELHI_NODES = [
@@ -34,10 +35,10 @@ export const DELHI_NODES = [
     { id: 'NDC', name: 'Narela / Outer Ring', pos: [28.8450, 77.1034] },
 ];
 
-// IMPORTANT: stable reference outside component — prevents useJsApiLoader re-runs
+// IMPORTANT: stable reference outside component  prevents useJsApiLoader re-runs
 export const MAPS_LIBRARIES = ['places'];
 
-// ─── Dark map style ───────────────────────────────────────────────────────────
+// --- Dark map style -----------------------------------------------------------
 const DARK_STYLE = [
     { elementType: 'geometry', stylers: [{ color: '#0d1117' }] },
     { elementType: 'labels.text.stroke', stylers: [{ color: '#0d1117' }] },
@@ -61,7 +62,7 @@ const DARK_STYLE = [
 
 const MAP_STYLE = { height: '100%', width: '100%' };
 
-// ─── Geo Math ─────────────────────────────────────────────────────────────────
+// --- Geo Math -----------------------------------------------------------------
 function getHaversineDistance(lat1, lon1, lat2, lon2) {
     const R = 6371e3; // Earth radius in meters
     const rad = Math.PI / 180;
@@ -74,13 +75,13 @@ function getHaversineDistance(lat1, lon1, lat2, lon2) {
     return R * c;
 }
 
-// ─── Signal label overlay at corridor node ─────────────────────────────────
+// --- Signal label overlay at corridor node ---------------------------------
 function SignalLabel({ position, status, name }) {
     const colors = {
-        active: { bg: '#00ff9d', text: '#000', label: '🟢 GREEN' },
-        prep: { bg: '#ffb800', text: '#000', label: '🟡 PREP' },
-        queued: { bg: '#ff3b5c', text: '#fff', label: '🔴 RED' },
-        done: { bg: '#00ff9d', text: '#000', label: '✓ CLEAR' },
+        active: { bg: '#00ff9d', text: '#000', label: ' GREEN' },
+        prep: { bg: '#ffb800', text: '#000', label: ' PREP' },
+        queued: { bg: '#ff3b5c', text: '#fff', label: ' RED' },
+        done: { bg: '#00ff9d', text: '#000', label: ' CLEAR' },
     };
     const c = colors[status] || colors.queued;
     return (
@@ -108,7 +109,7 @@ function SignalLabel({ position, status, name }) {
     );
 }
 
-// ─── Moving ambulance ─────────────────────────────────────────────────────────
+// --- Moving ambulance ---------------------------------------------------------
 function MovingAmbulance({ path, active, onNodeUpdate, totalNodes, onNodeAdvance, nodeCount, corridorNodeMarkers, onIotTrigger }) {
     const [pos, setPos] = useState(path[0] || { lat: 28.59, lng: 77.12 });
     const timer = useRef(null);
@@ -147,7 +148,7 @@ function MovingAmbulance({ path, active, onNodeUpdate, totalNodes, onNodeAdvance
                 }
             }
 
-            // IoT 500m Trigger Logic — scan ALL upcoming nodes, not just the next one
+            // IoT 500m Trigger Logic  scan ALL upcoming nodes, not just the next one
             if (onIotTrigger && corridorNodeMarkers?.length) {
                 for (let ni = currentNodeIdx + 1; ni < corridorNodeMarkers.length; ni++) {
                     if (iotFiredForNode.current.has(ni)) continue;
@@ -173,10 +174,10 @@ function MovingAmbulance({ path, active, onNodeUpdate, totalNodes, onNodeAdvance
         fillColor: '#00ff9d', fillOpacity: 1,
         strokeColor: '#0a0f1e', strokeWeight: 1.5, scale: 3,
     };
-    return <Marker position={pos} icon={icon} zIndex={1000} title="🚑 Ambulance" />;
+    return <Marker position={pos} icon={icon} zIndex={1000} title=" Ambulance" />;
 }
 
-// ─── Path Densifier ────────────────────────────────────────────────────────
+// --- Path Densifier --------------------------------------------------------
 function densifyPath(path, maxDistanceMeters = 20) {
     if (path.length < 2) return path;
     const dense = [path[0]];
@@ -199,22 +200,23 @@ function densifyPath(path, maxDistanceMeters = 20) {
     return dense;
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
-// Props:
-//   showCorridor        – bool
-//   corridorActive      – bool
-//   originLatLng        – { lat, lng }
-//   destLatLng          – { lat, lng }
-//   originName          – string
-//   destName            – string
-//   onRouteResult       – callback({ distanceText, durationText, durationSec })
-//   onNodeUpdate        – callback(n) — fires when ambulance reaches end
-//   onNodeAdvance       – callback(nodeIdx) — fires as ambulance crosses each node
-//   corridorNodeCount   – number, for path fraction calc
-//   corridorNodeMarkers – [{ id, lat, lng, status, name }] — signal overlays on map
-//   userLocation        – { lat, lng } | null — live GPS dot
-//   navigationMode      – bool — map follows userLocation when true
-//   onIotTrigger        – callback(node, distance) — fires when ambulance < 500m to next signal
+// --- Main Component -----------------------------------------------------------
+//   showCorridor         bool
+//   corridorActive       bool
+//   originLatLng         { lat, lng }
+//   destLatLng           { lat, lng }
+//   originName           string
+//   destName             string
+//   cityName             string (e.g. 'Delhi'), used for signal node matching
+//   onRouteResult        callback({ distanceText, durationText, durationSec })
+//   onRouteNodes         callback(nodes)  receives exact signal nodes on the route
+//   onNodeUpdate         callback(n)  fires when ambulance reaches end
+//   onNodeAdvance        callback(nodeIdx)  fires as ambulance crosses each node
+//   corridorNodeCount    number, for path fraction calc
+//   corridorNodeMarkers  [{ id, lat, lng, status, name }]  signal overlays on map
+//   userLocation         { lat, lng } | null  live GPS dot
+//   navigationMode       bool  map follows userLocation when true
+//   onIotTrigger         callback(node, distance)  fires when ambulance < 500m to next signal
 export default function DelhiMap({
     showCorridor,
     corridorActive,
@@ -222,6 +224,7 @@ export default function DelhiMap({
     destLatLng,
     originName,
     destName,
+    cityName = 'Delhi',
     onRouteResult,
     onRouteNodes,
     onNodeUpdate,
@@ -295,33 +298,39 @@ export default function DelhiMap({
                         durationSec: leg.duration_in_traffic?.value || leg.duration?.value || 0,
                     });
 
-                    // ── 2nd API call: reverse-geocode 5 evenly-spaced route points ──
-                    if (onRouteNodes && rawPath.length > 1) {
-                        const COUNT = 5;
-                        const sampled = [];
-                        for (let i = 1; i <= COUNT; i++) {
-                            const idx = Math.round((i / (COUNT + 1)) * (rawPath.length - 1));
-                            sampled.push(rawPath[Math.min(idx, rawPath.length - 1)]);
+                    // -- Pick exactly 6 signal nodes on the route --
+                    // Match real intersections against the route polyline,
+                    // then pick 6 evenly-spaced from matches (or fallback).
+                    if (onRouteNodes) {
+                        const FIXED_COUNT = 6;
+                        let allMatched = nodesOnPolyline(rawPath, cityName, 350);
+                        let finalNodes;
+
+                        if (allMatched.length >= FIXED_COUNT) {
+                            // Pick 6 evenly spaced from matched nodes
+                            finalNodes = [];
+                            for (let i = 0; i < FIXED_COUNT; i++) {
+                                const idx = Math.round(i * (allMatched.length - 1) / (FIXED_COUNT - 1));
+                                finalNodes.push(allMatched[idx]);
+                            }
+                        } else if (allMatched.length > 0) {
+                            // Use all matched + fill remaining from pickCorridorNodes
+                            const usedIds = new Set(allMatched.map(n => n.id));
+                            const extras = pickCorridorNodes(
+                                { lat: rawPath[0].lat, lng: rawPath[0].lng },
+                                { lat: rawPath[rawPath.length - 1].lat, lng: rawPath[rawPath.length - 1].lng },
+                                cityName, FIXED_COUNT
+                            ).filter(n => !usedIds.has(n.id));
+                            finalNodes = [...allMatched, ...extras].slice(0, FIXED_COUNT);
+                        } else {
+                            // No polyline matches  straight-line fallback
+                            finalNodes = pickCorridorNodes(
+                                { lat: rawPath[0].lat, lng: rawPath[0].lng },
+                                { lat: rawPath[rawPath.length - 1].lat, lng: rawPath[rawPath.length - 1].lng },
+                                cityName, FIXED_COUNT
+                            );
                         }
-                        const geocoder = new window.google.maps.Geocoder();
-                        const PRIO = ['premise', 'route', 'sublocality_level_2', 'sublocality_level_1', 'sublocality', 'neighborhood', 'locality'];
-                        Promise.all(
-                            sampled.map((pt, i) =>
-                                new Promise(resolve => {
-                                    geocoder.geocode({ location: { lat: pt.lat, lng: pt.lng } }, (res, st) => {
-                                        let name = `Checkpoint ${i + 1}`;
-                                        if (st === 'OK' && res[0]) {
-                                            const comps = res[0].address_components;
-                                            for (const type of PRIO) {
-                                                const comp = comps.find(c => c.types.includes(type));
-                                                if (comp) { name = comp.long_name; break; }
-                                            }
-                                        }
-                                        resolve({ id: `RN${i + 1}`, name, pos: [pt.lat, pt.lng] });
-                                    });
-                                })
-                            )
-                        ).then(nodes => onRouteNodes(nodes));
+                        onRouteNodes(finalNodes);
                     }
                 } else {
                     console.warn('Directions error:', status);
@@ -345,7 +354,7 @@ export default function DelhiMap({
     const originIcon = { path: window.google.maps.SymbolPath.CIRCLE, scale: 10, fillColor: '#00f5ff', fillOpacity: 1, strokeColor: '#fff', strokeWeight: 3 };
     const destIcon = { path: window.google.maps.SymbolPath.CIRCLE, scale: 10, fillColor: '#a78bfa', fillOpacity: 1, strokeColor: '#fff', strokeWeight: 3 };
 
-    // Live GPS dot icon — bright blue pulsing circle
+    // Live GPS dot icon  bright blue pulsing circle
     const gpsIcon = {
         path: window.google.maps.SymbolPath.CIRCLE,
         scale: 10,
@@ -405,7 +414,7 @@ export default function DelhiMap({
                         <Marker
                             position={userLocation}
                             icon={gpsIcon}
-                            title="📍 Your Location"
+                            title=" Your Location"
                             zIndex={900}
                         />
                     </>

@@ -1,13 +1,13 @@
-"""
+﻿"""
 Priority-queue based conflict resolution engine.
 Ensures that when multiple active corridors compete for the same intersection,
 the highest-priority one wins the green signal.
 
 Priority order (lower number = higher priority):
-  1 — Critical Ambulance  (trauma, cardiac)
-  2 — Fire Truck
-  3 — Standard Ambulance
-  4 — VVIP Convoy
+  1  Critical Ambulance  (trauma, cardiac)
+  2  Fire Truck
+  3  Standard Ambulance
+  4  VVIP Convoy
 """
 import heapq
 from typing import Dict, List, Optional
@@ -28,7 +28,7 @@ class QueueEntry:
 
 class ConflictEngine:
     _queue: List[QueueEntry] = []
-    # Map intersection_id → winning corridor_id
+    # Map intersection_id -> winning corridor_id
     _intersection_owner: Dict[int, str] = {}
 
     @classmethod

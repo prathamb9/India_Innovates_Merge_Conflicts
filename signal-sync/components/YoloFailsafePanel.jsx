@@ -8,7 +8,7 @@ import IntersectionModal from './IntersectionModal';
 
 const STREAM_BASE = 'http://localhost:8001';
 
-/* ─── Per-city camera sets (6 intersections each) ────────────────────────── */
+/* --- Per-city camera sets (6 intersections each) -------------------------- */
 const CITY_CAMERAS = {
     Delhi: [
         { id: 'CAM-01', name: 'Connaught Place', road: 'Janpath × Rajpath', ns: 'Janpath', ew: 'Rajpath', offset: 0 },
@@ -80,7 +80,7 @@ const CYCLE = { green: 20, yellow: 5, red: 15 };
 const SIG_COLOR = { green: '#00ff9d', yellow: '#ffb800', red: '#ff3b5c' };
 const SIG_GLOW  = { green: '0 0 12px #00ff9d99', yellow: '0 0 12px #ffb80099', red: '0 0 12px #ff3b5c99' };
 
-/* ─── N/S/E/W directional signal indicator ──────────────────────────────── */
+/* --- N/S/E/W directional signal indicator -------------------------------- */
 function DirectionSignals({ nsColor, ewColor }) {
     const dirs = [
         { label: 'N', color: nsColor, top: 0,    left: '50%',  transform: 'translateX(-50%)' },
@@ -103,7 +103,7 @@ function DirectionSignals({ nsColor, ewColor }) {
     );
 }
 
-/* ─── 3-bulb signal pole ─────────────────────────────────────────────────── */
+/* --- 3-bulb signal pole --------------------------------------------------- */
 function SignalLamp({ active }) {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 3, padding: '5px 4px', background: '#050a14', borderRadius: 7, border: '1px solid rgba(255,255,255,0.06)' }}>
@@ -114,7 +114,7 @@ function SignalLamp({ active }) {
     );
 }
 
-/* ─── Manual override mini-button ───────────────────────────────────────── */
+/* --- Manual override mini-button ----------------------------------------- */
 function OverrideBtn({ label, color, active, disabled, onClick }) {
     return (
         <button
@@ -142,7 +142,7 @@ function OverrideBtn({ label, color, active, disabled, onClick }) {
     );
 }
 
-/* ─── Camera card ────────────────────────────────────────────────────────── */
+/* --- Camera card ---------------------------------------------------------- */
 function CameraCard({ cam, density, ns_density, ew_density, signal, timer, event, emergency, manualOverride, iotOverride, onManualGreen, onManualRed, onManualReset, onExpand }) {
     const [streamError, setStreamError] = useState(false);
     // Signal priority: iotOverride > emergency > manualOverride > auto phase
@@ -165,17 +165,17 @@ function CameraCard({ cam, density, ns_density, ew_density, signal, timer, event
     const cardBorder = isEmgGreen ? 'rgba(0,255,157,0.4)' : isManual ? (manualOverride === 'green' ? 'rgba(0,255,157,0.35)' : 'rgba(255,59,92,0.35)') : density >= 70 ? 'rgba(255,59,92,0.2)' : 'rgba(255,255,255,0.06)';
     const cardBg    = isEmgGreen ? 'rgba(0,255,157,0.05)' : isEmgRed ? 'rgba(255,59,92,0.03)' : isManual ? 'rgba(167,139,250,0.04)' : 'rgba(10,15,26,0.8)';
 
-    const statusText = isIot ? `⚡ IOT PREEMPTION (${iotOverride}m)`
+    const statusText = isIot ? ` IOT PREEMPTION (${iotOverride}m)`
         : isEmgGreen ? 'EMERGENCY CLEAR'
         : isEmgRed ? 'CROSS STOPPED'
-        : isManual ? `MANUAL — ${manualOverride.toUpperCase()}`
+        : isManual ? `MANUAL  ${manualOverride.toUpperCase()}`
         : isDense ? 'EXTENDING GREEN'
         : `${displaySignal.toUpperCase()} · ${density >= 70 ? 'HIGH' : density >= 40 ? 'MED' : 'LOW'}`;
 
     const timerText = (emergency || isManual) ? '--' : `${String(timer).padStart(2, '0')}s`;
 
     return (
-        <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 14, padding: '12px 13px', display: 'flex', flexDirection: 'column', gap: 9, transition: 'all 0.5s ease', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 16, padding: '12px 13px', display: 'flex', flexDirection: 'column', gap: 9, transition: 'all 0.5s ease', position: 'relative', overflow: 'hidden' }}>
 
             {isEmgGreen && <div style={{ position: 'absolute', top: 0, left: '-100%', width: '60%', height: '100%', background: 'linear-gradient(90deg,transparent,rgba(0,255,157,0.07),transparent)', animation: 'shimmer 2s infinite', pointerEvents: 'none' }} />}
             {isManual   && <div style={{ position: 'absolute', top: 0, left: '-100%', width: '60%', height: '100%', background: 'linear-gradient(90deg,transparent,rgba(167,139,250,0.06),transparent)', animation: 'shimmer 3s infinite', pointerEvents: 'none' }} />}
@@ -197,7 +197,7 @@ function CameraCard({ cam, density, ns_density, ew_density, signal, timer, event
                 </div>
             </div>
 
-            {/* Camera feed — native HTML5 video for smooth hardware-accelerated playback */}
+            {/* Camera feed  native HTML5 video for smooth hardware-accelerated playback */}
             <div
                 onClick={onExpand}
                 title="Click to expand"
@@ -212,14 +212,14 @@ function CameraCard({ cam, density, ns_density, ew_density, signal, timer, event
                     style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85, zIndex: 0 }}
                 />
                 {/* YOLO LIVE badge */}
-                <div style={{ position: 'absolute', top: 4, right: 5, zIndex: 4, background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(0,255,157,0.3)', borderRadius: 4, padding: '1px 5px', fontSize: '0.38rem', color: '#00ff9d', fontFamily: 'monospace', letterSpacing: '0.05em', pointerEvents: 'none' }}>⛶ EXPAND</div>
+                <div style={{ position: 'absolute', top: 4, right: 5, zIndex: 4, background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(0,255,157,0.3)', borderRadius: 4, padding: '1px 5px', fontSize: '0.38rem', color: '#00ff9d', fontFamily: 'monospace', letterSpacing: '0.05em', pointerEvents: 'none' }}> EXPAND</div>
                 {/* Scanline overlay */}
                 <div style={{ position: 'absolute', left: 0, right: 0, height: 1.5, background: 'rgba(0,245,255,0.38)', animation: 'scanline 2.2s linear infinite', boxShadow: '0 0 5px #00f5ff', zIndex: 2 }} />
                 {/* Grid overlay */}
                 <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(0,245,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,255,0.025) 1px,transparent 1px)', backgroundSize: '14px 14px', zIndex: 2 }} />
                 {/* Status text overlay */}
                 <div style={{ zIndex: 3, fontSize: '0.52rem', fontFamily: 'monospace', color: isAmbulance ? '#ffb800' : isDense ? '#ff3b5c' : 'rgba(255,255,255,0.5)', textShadow: '0 0 4px rgba(0,0,0,0.8)', fontWeight: 700 }}>
-                    {isAmbulance ? `🚨 Ambulance  conf ${event.conf}%` : isDense ? `Dense traffic  ${density}%` : 'YOLO-v8 · LIVE'}
+                    {isAmbulance ? ` Ambulance  conf ${event.conf}%` : isDense ? `Dense traffic  ${density}%` : 'YOLO-v8 · LIVE'}
                 </div>
                 {/* Detection bounding box indicator */}
                 {event && <div style={{ position: 'absolute', top: 7, right: 7, width: isAmbulance ? 28 : 42, height: isAmbulance ? 18 : 12, border: `1px solid ${isAmbulance ? '#ffb800' : '#ff3b5c'}`, borderRadius: 2, boxShadow: `0 0 5px ${isAmbulance ? '#ffb80066' : '#ff3b5c66'}`, zIndex: 3 }} />}
@@ -268,7 +268,7 @@ function CameraCard({ cam, density, ns_density, ew_density, signal, timer, event
                 </div>
             </div>
 
-            {/* ── Manual interrupt controls ─────────────────────────────── */}
+            {/* -- Manual interrupt controls ------------------------------- */}
             <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 8, display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
                 <span style={{ fontSize: '0.47rem', color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase', letterSpacing: '0.07em', marginRight: 2 }}>Manual:</span>
                 <OverrideBtn
@@ -297,7 +297,7 @@ function CameraCard({ cam, density, ns_density, ew_density, signal, timer, event
     );
 }
 
-/* ─── Main Component ─────────────────────────────────────────────────────── */
+/* --- Main Component ------------------------------------------------------- */
 export default function YoloFailsafePanel({ cityName = 'Delhi' }) {
     const cameras = CITY_CAMERAS[cityName] || CITY_CAMERAS['Delhi'];
 
@@ -342,19 +342,19 @@ export default function YoloFailsafePanel({ cityName = 'Delhi' }) {
         setLog(p => [...p.slice(-9), { ts, msg }]);
     }
 
-    /* ── Manual override handlers ────────────────────────────────────────── */
+    /* -- Manual override handlers ------------------------------------------ */
     function handleManualOverride(idx, color) {
         if (overrideRef.current) return; // block during emergency
         setCams(prev => prev.map((c, i) => i === idx ? { ...c, manualOverride: color } : c));
-        addLog(`Operator: ${cameras[idx].id} ${cameras[idx].name} — forced ${color.toUpperCase()} (manual override)`);
+        addLog(`Operator: ${cameras[idx].id} ${cameras[idx].name}  forced ${color.toUpperCase()} (manual override)`);
     }
 
     function handleManualReset(idx) {
         setCams(prev => prev.map((c, i) => i === idx ? { ...c, manualOverride: null, phase: 'green', timer: CYCLE.green } : c));
-        addLog(`Operator: ${cameras[idx].id} ${cameras[idx].name} — reset to auto cycle`);
+        addLog(`Operator: ${cameras[idx].id} ${cameras[idx].name}  reset to auto cycle`);
     }
 
-    /* Signal cycle tick — skips emergency AND manualOverride nodes */
+    /* Signal cycle tick  skips emergency AND manualOverride nodes */
     useEffect(() => {
         const t = setInterval(() => {
             if (pausedRef.current) return;
@@ -393,7 +393,7 @@ export default function YoloFailsafePanel({ cityName = 'Delhi' }) {
             if (pausedRef.current || overrideRef.current) return;
             setCams(prev => prev.map((c, i) => {
                 if (c.density >= 72 && c.phase === 'red' && c.emergency === null && c.manualOverride === null && c.iotOverride === null) {
-                    addLog(`Dense traffic: ${cameras[i].id} (${c.density}%) — green phase extended`);
+                    addLog(`Dense traffic: ${cameras[i].id} (${c.density}%)  green phase extended`);
                     return { ...c, phase: 'green', timer: CYCLE.green, event: { type: 'dense' } };
                 }
                 if (c.event?.type === 'dense' && c.density < 65) return { ...c, event: null };
@@ -403,7 +403,7 @@ export default function YoloFailsafePanel({ cityName = 'Delhi' }) {
         return () => clearInterval(t);
     }, [cameras]);
 
-    /* Edge AI Firebase Listener ────────────────────────── */
+    /* Edge AI Firebase Listener -------------------------- */
     function triggerEmergency(idx, conf) {
         if (overrideRef.current) return;
         overrideRef.current = true;
@@ -413,14 +413,14 @@ export default function YoloFailsafePanel({ cityName = 'Delhi' }) {
             ? { ...c, event: { type: 'ambulance', conf }, manualOverride: null }
             : { ...c, manualOverride: null }
         ));
-        addLog(`[EDGE AI] Ambulance detected at ${cameras[idx].id} — ${cameras[idx].name} — conf ${conf}%`);
+        addLog(`[EDGE AI] Ambulance detected at ${cameras[idx].id}  ${cameras[idx].name}  conf ${conf}%`);
 
         setTimeout(() => {
             setCams(prev => prev.map(c => ({ ...c, emergency: 'yellow' })));
-            addLog('Protocol: 3-second yellow clearance — all intersections');
+            addLog('Protocol: 3-second yellow clearance  all intersections');
             setTimeout(() => {
                 setCams(prev => prev.map((c, i) => ({ ...c, emergency: i === idx ? 'green' : 'red' })));
-                addLog(`Override: ${cameras[idx].name} N/S — GREEN · E/W cross-traffic — RED`);
+                addLog(`Override: ${cameras[idx].name} N/S  GREEN · E/W cross-traffic  RED`);
             }, 3000);
         }, 1500);
     }
@@ -429,7 +429,7 @@ export default function YoloFailsafePanel({ cityName = 'Delhi' }) {
         if (!overrideRef.current) return;
         setCams(prev => prev.map(c => ({ ...c, emergency: null, event: null, phase: 'green', timer: CYCLE.green })));
         overrideRef.current = false;
-        addLog('Clear: Vehicle exited — normal cycle resumed');
+        addLog('Clear: Vehicle exited  normal cycle resumed');
     }
 
     useEffect(() => {
@@ -460,11 +460,11 @@ export default function YoloFailsafePanel({ cityName = 'Delhi' }) {
     }, [cameras]);
 
     useEffect(() => {
-        addLog(`AI Camera Network online — YOLO-v8 monitoring ${cityName}`);
+        addLog(`AI Camera Network online  YOLO-v8 monitoring ${cityName}`);
         addLog(`Awaiting live Firebase events from Python Edge Node...`);
     }, []);
 
-    /* ── Firestore intersection_stats listener (real YOLO density) ─────── */
+    /* -- Firestore intersection_stats listener (real YOLO density) ------- */
     useEffect(() => {
         if (cityName !== 'Delhi') return; // stats only pushed for Delhi CAM-XX nodes
         const unsubs = cameras.map((cam, i) => {
@@ -515,7 +515,7 @@ export default function YoloFailsafePanel({ cityName = 'Delhi' }) {
     const manualCount = cams.filter(c => c.manualOverride !== null).length;
 
     return (
-        <div style={{ background: 'rgba(7,12,22,0.97)', border: `1px solid ${emgActive || iotActive ? 'rgba(0,255,157,0.25)' : manualCount > 0 ? 'rgba(167,139,250,0.2)' : 'rgba(0,245,255,0.1)'}`, borderRadius: 20, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 14, transition: 'border-color 0.5s' }}>
+        <div style={{ background: '#1C1825', border: `1px solid ${emgActive || iotActive ? 'rgba(0,255,157,0.25)' : manualCount > 0 ? 'rgba(167,139,250,0.2)' : 'rgba(255,255,255,0.12)'}`, borderRadius: 24, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 14, transition: 'border-color 0.5s', fontFamily: 'Inter, sans-serif' }}>
 
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
@@ -525,10 +525,10 @@ export default function YoloFailsafePanel({ cityName = 'Delhi' }) {
                         <div style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', marginBottom: 2 }}>AI Camera Network · YOLO-v8 · {cityName}</div>
                         <div style={{ fontSize: '0.95rem', fontWeight: 800, color: emgActive || iotActive ? '#00ff9d' : manualCount > 0 ? '#a78bfa' : paused ? '#ffb800' : 'rgba(255,255,255,0.9)' }}>
                             {paused ? 'System Paused'
-                                : emgActive ? 'Emergency Override — Green corridor active'
-                                : iotActive ? '⚡ IoT Auto-Preemption Active (Ambulance <500m)'
+                                : emgActive ? 'Emergency Override  Green corridor active'
+                                : iotActive ? ' IoT Auto-Preemption Active (Ambulance <500m)'
                                 : manualCount > 0 ? `${manualCount} signal${manualCount > 1 ? 's' : ''} under manual control`
-                                : `Monitoring ${cameras.length} intersections — Signal cycle running`}
+                                : `Monitoring ${cameras.length} intersections  Signal cycle running`}
                         </div>
                     </div>
                 </div>
@@ -550,7 +550,7 @@ export default function YoloFailsafePanel({ cityName = 'Delhi' }) {
             {/* Emergency override banner */}
             {emgActive && (
                 <div style={{ background: 'rgba(0,255,157,0.06)', border: '1px solid rgba(0,255,157,0.25)', borderRadius: 11, padding: '9px 14px' }}>
-                    <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#00ff9d', letterSpacing: '0.05em' }}>Emergency Override Active — N/S green corridor cleared, E/W cross-traffic stopped</div>
+                    <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#00ff9d', letterSpacing: '0.05em' }}>Emergency Override Active  N/S green corridor cleared, E/W cross-traffic stopped</div>
                     <div style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>YOLO-v8 visual detection · Edge-AI · No GPS required · 97%+ confidence</div>
                 </div>
             )}
@@ -558,7 +558,7 @@ export default function YoloFailsafePanel({ cityName = 'Delhi' }) {
             {/* IoT auto-preemption banner */}
             {iotActive && !emgActive && (
                 <div style={{ background: 'rgba(0,245,255,0.06)', border: '1px solid rgba(0,245,255,0.25)', borderRadius: 11, padding: '9px 14px' }}>
-                    <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#00f5ff', letterSpacing: '0.05em' }}>⚡ IoT Auto-Preemption Active (Ambulance within 500m)</div>
+                    <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#00f5ff', letterSpacing: '0.05em' }}> IoT Auto-Preemption Active (Ambulance within 500m)</div>
                     <div style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>Signal preempted via real-time GPS telemetry from emergency vehicle · Hands-free operation</div>
                 </div>
             )}
@@ -566,7 +566,7 @@ export default function YoloFailsafePanel({ cityName = 'Delhi' }) {
             {/* Manual override info banner */}
             {!emgActive && manualCount > 0 && (
                 <div style={{ background: 'rgba(167,139,250,0.06)', border: '1px solid rgba(167,139,250,0.2)', borderRadius: 11, padding: '9px 14px' }}>
-                    <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#a78bfa', letterSpacing: '0.05em' }}>Manual Override Active — {manualCount} intersection{manualCount > 1 ? 's' : ''} under operator control</div>
+                    <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#a78bfa', letterSpacing: '0.05em' }}>Manual Override Active  {manualCount} intersection{manualCount > 1 ? 's' : ''} under operator control</div>
                     <div style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>Auto-cycle suspended for controlled nodes · Emergency detection still active · Click Reset Auto to resume</div>
                 </div>
             )}
@@ -594,7 +594,7 @@ export default function YoloFailsafePanel({ cityName = 'Delhi' }) {
                 ))}
             </div>
 
-            {/* ── Intersection Detail Modal ─────────────────────────────── */}
+            {/* -- Intersection Detail Modal ------------------------------- */}
             {selectedCam !== null && (
                 <IntersectionModal
                     cam={cameras[selectedCam]}
@@ -609,7 +609,7 @@ export default function YoloFailsafePanel({ cityName = 'Delhi' }) {
                 {[['green', 'GREEN', `${CYCLE.green}s`], ['yellow', 'YELLOW', `${CYCLE.yellow}s`], ['red', 'RED', `${CYCLE.red}s`]].map(([c, l, t]) => (
                     <div key={c} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.58rem', color: 'rgba(255,255,255,0.32)' }}>
                         <div style={{ width: 7, height: 7, borderRadius: '50%', background: SIG_COLOR[c], boxShadow: SIG_GLOW[c] }} />
-                        <span>{l} — <strong style={{ color: SIG_COLOR[c], fontFamily: 'monospace' }}>{t}</strong></span>
+                        <span>{l}  <strong style={{ color: SIG_COLOR[c], fontFamily: 'monospace' }}>{t}</strong></span>
                     </div>
                 ))}
                 <span style={{ marginLeft: 'auto', fontSize: '0.52rem', color: 'rgba(255,255,255,0.14)', fontFamily: 'monospace' }}>Emergency interrupts all manual overrides</span>

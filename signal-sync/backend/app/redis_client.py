@@ -1,4 +1,4 @@
-import json
+﻿import json
 from typing import Any, Optional
 import redis.asyncio as aioredis
 from app.config import settings
@@ -22,11 +22,11 @@ async def close_redis() -> None:
 
 def get_redis() -> aioredis.Redis:
     if _redis is None:
-        raise RuntimeError("Redis not initialised — call init_redis() first")
+        raise RuntimeError("Redis not initialised  call init_redis() first")
     return _redis
 
 
-# ── Convenience helpers ──────────────────────────────────────────────────────
+# -- Convenience helpers ------------------------------------------------------
 
 async def redis_set(key: str, value: Any, ttl: Optional[int] = None) -> None:
     r = get_redis()

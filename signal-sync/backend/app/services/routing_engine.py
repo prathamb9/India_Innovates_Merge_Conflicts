@@ -1,4 +1,4 @@
-"""
+﻿"""
 A* routing engine backed by a NetworkX DiGraph.
 Graph is loaded from PostgreSQL on startup and kept hot in memory.
 Live traffic weights are fetched from Redis per request.
@@ -14,7 +14,7 @@ import structlog
 
 log = structlog.get_logger(__name__)
 
-# Singleton DiGraph — rebuilt on startup
+# Singleton DiGraph  rebuilt on startup
 _graph: nx.DiGraph = nx.DiGraph()
 _intersection_meta: Dict[int, dict] = {}
 
@@ -57,7 +57,7 @@ def _haversine_heuristic(u: int, v: int) -> float:
     dlng = math.radians(lng2 - lng1)
     a = math.sin(dlat / 2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlng / 2) ** 2
     dist_m = R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    # Assume 50 km/h ≈ 13.9 m/s for heuristic
+    # Assume 50 km/h  13.9 m/s for heuristic
     return dist_m / 13.9
 
 

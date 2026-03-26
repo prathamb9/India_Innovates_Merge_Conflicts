@@ -1,5 +1,5 @@
 """
-SignalSync Edge AI Simulator — Main YOLO Runner
+SignalSync Edge AI Simulator  Main YOLO Runner
 ===============================================
 Reads a local demo video file frame by frame, runs YOLOv8n object detection,
 and when an ambulance (or emergency vehicle) is detected with high confidence
@@ -47,7 +47,7 @@ def run(video_path: str, use_webcam: bool, use_firebase: bool, headless: bool = 
     print("\n  SignalSync Edge AI Simulator  ")
     print("=" * 40)
 
-    # Load model (downloads automatically on first run — ~6MB)
+    # Load model (downloads automatically on first run  ~6MB)
     print("[YOLO] Loading yolov8n.pt model...")
     model = YOLO("yolov8n.pt")
     print("[YOLO] Model loaded. Starting detection loop...\n")
@@ -61,7 +61,7 @@ def run(video_path: str, use_webcam: bool, use_firebase: bool, headless: bool = 
     # Use a random node for this session (simulates a specific intersection camera)
     import random
     node = random.choice(CAMERA_NODES)
-    print(f"[NODE] This session simulates: {node['id']} — {node['name']}\n")
+    print(f"[NODE] This session simulates: {node['id']}  {node['name']}\n")
 
     consecutive_detections = 0
     event_fired            = False
@@ -153,7 +153,7 @@ def run(video_path: str, use_webcam: bool, use_firebase: bool, headless: bool = 
 
         # Show frame only if NOT headless
         if not headless:
-            cv2.imshow(f"SignalSync Edge AI — {node['id']} {node['name']}", frame)
+            cv2.imshow(f"SignalSync Edge AI  {node['id']} {node['name']}", frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
         else:

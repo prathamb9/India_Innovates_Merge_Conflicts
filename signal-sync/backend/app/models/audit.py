@@ -1,4 +1,4 @@
-import uuid
+﻿import uuid
 from datetime import datetime
 from sqlalchemy import (
     Column, String, Text, DateTime, ForeignKey,
@@ -29,7 +29,7 @@ class TrafficLog(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     intersection_id = Column(Integer, ForeignKey("intersections.id"), nullable=False)
-    density_pct = Column(Integer, nullable=False)   # 0–100
+    density_pct = Column(Integer, nullable=False)   # 0100
     vehicle_count = Column(Integer, default=0)
     signal_state = Column(String(30))
     recorded_at = Column(DateTime(timezone=True), server_default=func.now())

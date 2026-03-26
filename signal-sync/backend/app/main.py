@@ -1,4 +1,4 @@
-from contextlib import asynccontextmanager
+﻿from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import structlog
@@ -21,7 +21,7 @@ log = structlog.get_logger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup / shutdown lifecycle."""
-    log.info("🚀 SignalSync backend starting up...")
+    log.info(" SignalSync backend starting up...")
 
     # 1. Firebase Admin
     init_firebase()
@@ -29,7 +29,7 @@ async def lifespan(app: FastAPI):
     # 2. Redis
     await init_redis()
 
-    # 3. Create DB tables (dev only — use Alembic migrations in prod)
+    # 3. Create DB tables (dev only  use Alembic migrations in prod)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
@@ -38,9 +38,9 @@ async def lifespan(app: FastAPI):
         async with AsyncSessionLocal() as db:
             await build_graph(db)
     except Exception as e:
-        log.warning("Routing graph build failed — running without pre-loaded graph", error=str(e))
+        log.warning("Routing graph build failed  running without pre-loaded graph", error=str(e))
 
-    log.info("✅ SignalSync backend ready")
+    log.info(" SignalSync backend ready")
     yield
 
     # Shutdown
@@ -61,7 +61,7 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# ── CORS ─────────────────────────────────────────────────────────────────────
+# -- CORS ---------------------------------------------------------------------
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
@@ -70,7 +70,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── REST routers ─────────────────────────────────────────────────────────────
+# -- REST routers -------------------------------------------------------------
 app.include_router(health_router.router)
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(corridor.router, prefix="/api/v1")
@@ -81,7 +81,7 @@ app.include_router(traffic.router, prefix="/api/v1")
 app.include_router(incident.router, prefix="/api/v1")
 app.include_router(chat.router, prefix="/api/v1")
 
-# ── WebSocket ─────────────────────────────────────────────────────────────────
+# -- WebSocket -----------------------------------------------------------------
 app.include_router(ws_router)
 
 

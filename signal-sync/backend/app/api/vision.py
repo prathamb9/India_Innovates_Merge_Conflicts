@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+﻿from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.schemas.vision import VisionAlertRequest, VisionAlertResponse
@@ -22,7 +22,7 @@ async def vision_alert(
 ):
     """
     Receive real-time YOLO detection events.
-    Triggers emergency signal override if confidence ≥ threshold
+    Triggers emergency signal override if confidence  threshold
     AND no higher-priority corridor already owns the intersection.
     """
     # Confidence gate
@@ -34,7 +34,7 @@ async def vision_alert(
             new_signal_state="UNCHANGED",
         )
 
-    # Conflict ownership check — don't override a green corridor
+    # Conflict ownership check  don't override a green corridor
     owner = ConflictEngine.get_owner(req.intersection_id)
     current = await SignalService.get_state(req.intersection_id)
     if current.get("state") in ("GREEN_CORRIDOR", "OVERRIDE"):
@@ -45,7 +45,7 @@ async def vision_alert(
             new_signal_state=current.get("state", "UNKNOWN"),
         )
 
-    # Trigger async emergency sequence (yellow → all-red → green)
+    # Trigger async emergency sequence (yellow -> all-red -> green)
     asyncio.create_task(
         SignalService.emergency_override(req.intersection_id, req.vehicle_type)
     )

@@ -1,4 +1,4 @@
-// StatusDot — animated pulsing indicator
+﻿// StatusDot  animated pulsing indicator
 const colorMap = {
     green: 'bg-accent-green shadow-[0_0_8px_#00ff9d]',
     red: 'bg-accent-red shadow-[0_0_8px_#ff3b5c]',

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+﻿from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.middleware.auth import get_current_user, require_admin
@@ -20,7 +20,7 @@ async def override_signal(
 ):
     """
     Admin-level override of a signal state.
-    Respects conflict ownership — if a higher-priority corridor owns this
+    Respects conflict ownership  if a higher-priority corridor owns this
     intersection, the override is rejected.
     """
     owner = ConflictEngine.get_owner(req.intersection_id)

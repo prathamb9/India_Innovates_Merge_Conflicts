@@ -28,9 +28,13 @@ class Settings(BaseSettings):
     default_red_duration: int = 30
     green_corridor_advance_sec: int = 30
 
+    # LLM Integration
+    groq_api_key: str = ""
+
     class Config:
         env_file = ".env"
         case_sensitive = False
+        extra = "ignore"
 
 
 @lru_cache

@@ -1,4 +1,4 @@
-"""
+﻿"""
 WebSocket connection manager.
 Tracks connections grouped by:
   - intersection_id  (for signal + traffic updates)
@@ -15,7 +15,7 @@ log = structlog.get_logger(__name__)
 
 class ConnectionManager:
     def __init__(self):
-        # room_key → set of active WebSocket connections
+        # room_key -> set of active WebSocket connections
         self._rooms: Dict[str, Set[WebSocket]] = {}
 
     def _room(self, key: str) -> Set[WebSocket]:

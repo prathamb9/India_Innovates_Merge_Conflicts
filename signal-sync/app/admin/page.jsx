@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Badge from '@/components/Badge';
 import StatusDot from '@/components/StatusDot';
 import { useAuth } from '@/components/AuthProvider';
+import { useLanguage } from '@/components/LanguageProvider';
 import {
     subscribeAllCorridors, terminateCorridor, createCorridor,
     subscribeAllUsers, setUserRole, setUserVerification, subscribeSignals, setSignalStatus,
@@ -30,6 +31,7 @@ const STATUS_COLORS = {
 export default function AdminPage() {
     const { user, userProfile, loading, logout } = useAuth();
     const router = useRouter();
+    const { t } = useLanguage();
 
     useEffect(() => {
         if (!loading && (!user || userProfile?.role !== 'admin')) {
@@ -45,6 +47,7 @@ export default function AdminPage() {
     // Create corridor form state (admin)
     const [createForm, setCreateForm] = useState({ vehicleNumber: '', vehicleType: 'ambulance', city: 'Delhi', originName: '', destName: '' });
     const [creating, setCreating] = useState(false);
+    const [cityFilter, setCityFilter] = useState('All');
 
     useEffect(() => { const u = subscribeAllCorridors(setCds); return () => u(); }, []);
     useEffect(() => { const u = subscribeAllUsers(setUsers); return () => u(); }, []);
@@ -76,8 +79,8 @@ export default function AdminPage() {
                 vehicleNumber: createForm.vehicleNumber.trim().toUpperCase(),
                 vehicleType: createForm.vehicleType,
                 city: createForm.city,
-                originName: createForm.originName || '—',
-                destName: createForm.destName || '—',
+                originName: createForm.originName || '',
+                destName: createForm.destName || '',
                 originLatLng: null,
                 destLatLng: null,
             });
@@ -87,11 +90,13 @@ export default function AdminPage() {
         }
     }
 
-    const active = corridors.filter(c => c.status === 'active');
-    const history = corridors.filter(c => c.status !== 'active');
+    const allCities = ['All', ...Array.from(new Set(corridors.map(c => c.city).filter(Boolean))).sort()];
+    const filteredCorridors = cityFilter === 'All' ? corridors : corridors.filter(c => c.city === cityFilter);
+    const active = filteredCorridors.filter(c => c.status === 'active');
+    const history = filteredCorridors.filter(c => c.status !== 'active');
 
     if (loading || !user || userProfile?.role !== 'admin') return (
-        <div className="min-h-screen bg-bg-deep flex items-center justify-center text-text-muted">Verifying access…</div>
+        <div className="min-h-screen bg-bg-deep flex items-center justify-center text-text-muted">Verifying access</div>
     );
 
     return (
@@ -101,17 +106,17 @@ export default function AdminPage() {
             {/* Header */}
             <nav className="relative z-10 flex items-center justify-between px-8 py-3.5 bg-bg-deep/95 border-b border-white/5 backdrop-blur-xl">
                 <Link href="/" className="flex items-center gap-2.5 font-extrabold text-xl no-underline text-white">
-                    <div className="w-8 h-8 rounded-[6px] bg-gradient-to-br from-accent-red to-accent-violet flex items-center justify-center text-lg">⬡</div>
+                    <div className="w-8 h-8 rounded-[6px] bg-gradient-to-br from-accent-red to-accent-violet flex items-center justify-center text-lg"></div>
                     <span><span className="text-accent-red">Signal</span>Sync Admin</span>
                 </Link>
                 <div className="flex items-center gap-2.5">
-                    <Badge variant="red">Administrator</Badge>
+                    <Badge variant="red">{t('administratorBadge')}</Badge>
                     <Badge variant="green"><StatusDot color="green" className="mr-1" />{userProfile?.name || user.email}</Badge>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Link href="/portal" className="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 border border-white/5 text-text-primary no-underline">Portal</Link>
-                    <Link href="/dashboard" className="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 border border-white/5 text-text-primary no-underline">Dashboard</Link>
-                    <button onClick={logout} className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-[rgba(255,59,92,0.15)] text-accent-red border border-accent-red/30 font-sans cursor-pointer">Logout</button>
+                    <Link href="/portal" className="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 border border-white/5 text-text-primary no-underline">{t('portalLink')}</Link>
+                    <Link href="/dashboard" className="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 border border-white/5 text-text-primary no-underline">{t('dashboardLink')}</Link>
+                    <button onClick={logout} className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-[rgba(255,59,92,0.15)] text-accent-red border border-accent-red/30 font-sans cursor-pointer">{t('logoutLink')}</button>
                 </div>
             </nav>
 
@@ -141,9 +146,21 @@ export default function AdminPage() {
                     ))}
                 </div>
 
-                {/* ── Corridors Tab ── */}
+                {/* -- Corridors Tab -- */}
                 {tab === 'corridors' && (
                     <div className="flex flex-col gap-4">
+                        {/* City filter pills */}
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-[0.6rem] text-text-muted uppercase tracking-widest mr-1">City:</span>
+                            {allCities.map(city => (
+                                <button key={city} onClick={() => setCityFilter(city)}
+                                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all font-sans cursor-pointer border ${
+                                        cityFilter === city
+                                            ? 'bg-accent-cyan/15 border-accent-cyan/40 text-accent-cyan'
+                                            : 'bg-white/[0.03] border-white/5 text-text-muted hover:border-accent-cyan/20 hover:text-text-secondary'
+                                    }`}>{city}</button>
+                            ))}
+                        </div>
                         <div>
                             <h2 className="font-bold text-sm uppercase tracking-widest text-text-muted mb-3">Active Corridors ({active.length})</h2>
                             {active.length === 0 && <p className="text-text-muted text-sm">No active corridors.</p>}
@@ -160,7 +177,7 @@ export default function AdminPage() {
                                                 TERMINATE
                                             </button>
                                         </div>
-                                        <div className="text-xs text-text-secondary mb-1">{c.originName} → {c.destName}</div>
+                                        <div className="text-xs text-text-secondary mb-1">{c.originName} {'->'} {c.destName}</div>
                                         <div className="text-[0.65rem] text-text-muted">Type: {c.vehicleType} · City: {c.city}</div>
                                         <div className="text-[0.65rem] text-text-muted">By: {c.creatorName}</div>
                                     </div>
@@ -173,7 +190,8 @@ export default function AdminPage() {
                                 {history.map(c => (
                                     <div key={c.id} className="bg-white/[0.02] border border-white/5 rounded-xl px-4 py-3 flex items-center gap-4">
                                         <span className="font-mono text-xs text-text-muted">{c.vehicleNumber}</span>
-                                        <span className="text-xs text-text-secondary flex-1">{c.originName} → {c.destName}</span>
+                                        <span className="text-[0.6rem] font-semibold text-accent-cyan bg-accent-cyan/10 border border-accent-cyan/20 rounded px-1.5 py-0.5">{c.city}</span>
+                                        <span className="text-xs text-text-secondary flex-1">{c.originName} {'->'} {c.destName}</span>
                                         <Badge variant={c.status === 'terminated' ? 'red' : 'green'}>{c.status}</Badge>
                                     </div>
                                 ))}
@@ -182,7 +200,7 @@ export default function AdminPage() {
                     </div>
                 )}
 
-                {/* ── Signal Control Tab ── */}
+                {/* -- Signal Control Tab -- */}
                 {tab === 'signals' && (
                     <div>
                         <h2 className="font-bold text-sm uppercase tracking-widest text-text-muted mb-4">Signal Override Panel</h2>
@@ -215,7 +233,7 @@ export default function AdminPage() {
                     </div>
                 )}
 
-                {/* ── Create Corridor Tab ── */}
+                {/* -- Create Corridor Tab -- */}
                 {tab === 'create' && (
                     <div className="max-w-lg">
                         <h2 className="font-bold text-sm uppercase tracking-widest text-text-muted mb-4">Create Corridor (Admin)</h2>
@@ -254,7 +272,7 @@ export default function AdminPage() {
                     </div>
                 )}
 
-                {/* ── Users Tab ── */}
+                {/* -- Users Tab -- */}
                 {tab === 'users' && (
                     <div>
                         <h2 className="font-bold text-sm uppercase tracking-widest text-text-muted mb-4">Registered Users ({users.length})</h2>
@@ -262,7 +280,7 @@ export default function AdminPage() {
                             {users.map(u => (
                                 <div key={u.id} className={`border rounded-xl px-5 py-3.5 flex items-center gap-4 ${!u.verified && u.role !== 'admin' ? 'bg-accent-amber/[0.04] border-accent-amber/20' : 'bg-bg-card border-white/5'}`}>
                                     <div className="flex-1">
-                                        <div className="font-semibold text-sm">{u.name || '—'}</div>
+                                        <div className="font-semibold text-sm">{u.name || ''}</div>
                                         <div className="text-xs text-text-muted">{u.email}</div>
                                     </div>
                                     {u.vehicleNumber && <span className="font-mono text-xs text-text-secondary bg-white/5 px-2 py-0.5 rounded">{u.vehicleNumber}</span>}

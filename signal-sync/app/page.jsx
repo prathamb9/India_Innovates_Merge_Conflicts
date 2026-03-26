@@ -6,7 +6,7 @@ import Badge from '@/components/Badge';
 import StatusDot from '@/components/StatusDot';
 import { useLanguage } from '@/components/LanguageProvider';
 
-/* ── Stat counter hook ── */
+/* -- Stat counter hook -- */
 function useCountUp(target, duration = 1800) {
     const [value, setValue] = useState(0);
     const ref = useRef(null);
@@ -30,7 +30,7 @@ function useCountUp(target, duration = 1800) {
     return [value, ref];
 }
 
-/* ── Traffic Light (hero) ── */
+/* -- Traffic Light (hero) -- */
 function TrafficLight({ state }) {
     return (
         <div className="flex flex-col items-center gap-1 bg-[#0a0a0a] border-2 border-[#222] rounded-[14px] p-2">
@@ -45,7 +45,7 @@ function TrafficLight({ state }) {
     );
 }
 
-/* ── Hero intersection animation ── */
+/* -- Hero intersection animation -- */
 function HeroVisual() {
     const [tlState, setTlState] = useState({ ns: 'red', ew: 'green' });
     const [ambX, setAmbX] = useState(0);
@@ -84,8 +84,8 @@ function HeroVisual() {
                 <div className="absolute bottom-5 left-1/2 -translate-x-1/2"><TrafficLight state={tlState.ns} /></div>
                 <div className="absolute left-5 top-1/2 -translate-y-1/2"><div className="flex gap-1 bg-[#0a0a0a] border-2 border-[#222] rounded-[14px] p-2">{['red', 'amber', 'green'].map(c => <div key={c} className={`w-[22px] h-[22px] rounded-full ${tlState.ew === c ? `tl-light-active-${c}` : 'bg-white/5'}`} />)}</div></div>
                 <div className="absolute right-5 top-1/2 -translate-y-1/2"><div className="flex gap-1 bg-[#0a0a0a] border-2 border-[#222] rounded-[14px] p-2">{['red', 'amber', 'green'].map(c => <div key={c} className={`w-[22px] h-[22px] rounded-full ${tlState.ew === c ? `tl-light-active-${c}` : 'bg-white/5'}`} />)}</div></div>
-                {/* Ambulance — flipped so it faces right (forward direction) */}
-                <div className="absolute text-xl z-10 leading-none" style={{ top: '140px', left: `${ambX}px`, transform: 'scaleX(-1)' }}>🚑</div>
+                {/* Ambulance  flipped so it faces right (forward direction) */}
+                <div className="absolute text-xl z-10 leading-none" style={{ top: '140px', left: `${ambX}px`, transform: 'scaleX(-1)' }}></div>
                 {/* Scan line */}
                 <div className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent-cyan to-transparent opacity-80 animate-scan" />
                 {/* Info overlay */}
@@ -122,36 +122,46 @@ function HeroVisual() {
     );
 }
 
-/* ── Stat Card ── */
+/* -- Stat Card -- */
 function StatCard({ target, unit, label }) {
     const [value, ref] = useCountUp(target);
     return (
-        <div ref={ref} className="flex-1 min-w-[130px] px-6 py-5 flex flex-col gap-1">
+        <div ref={ref} className="flex-1 min-w-[130px] px-5 py-4 flex flex-col gap-1">
             <div>
-                <span className="text-[2.2rem] font-black leading-none grad-text font-mono">{value}</span>
-                <span className="text-xl font-bold text-text-secondary">{unit}</span>
+                <span className="text-[2.2rem] font-extrabold leading-none text-white font-mono">{value}</span>
+                <span className="text-xl font-bold text-accent-purple ml-1">{unit}</span>
             </div>
-            <div className="text-[0.78rem] text-text-muted leading-tight mt-0.5">{label}</div>
+            <div className="text-[0.72rem] text-text-muted mt-0.5">{label}</div>
         </div>
     );
 }
 
-/* ── Pillar Card ── */
+/* -- Pillar Card -- */
 function PillarCard({ letter, badge, variant, title, desc, features, tags }) {
-    const borderMap = { cyan: 'border-accent-cyan/25 shadow-[0_0_0_1px_rgba(0,245,255,0.1),0_20px_60px_rgba(0,245,255,0.05)]', green: 'border-accent-green/25 shadow-[0_0_0_1px_rgba(0,255,157,0.1),0_20px_60px_rgba(0,255,157,0.05)]', violet: 'border-accent-violet/25' };
-    const letterBg = { cyan: 'bg-[rgba(0,245,255,0.15)] text-accent-cyan', green: 'bg-[rgba(0,255,157,0.15)] text-accent-green', violet: 'bg-[rgba(124,58,237,0.15)] text-[#a78bfa]' };
+    const borderMap = {
+        cyan: 'border-accent-cyan/20 hover:border-accent-cyan/40',
+        green: 'border-accent-green/20 hover:border-accent-green/40',
+        violet: 'border-accent-violet/20 hover:border-accent-violet/40',
+    };
+    const letterBg = {
+        cyan:   'bg-[rgba(0,245,255,0.1)] text-accent-cyan',
+        green:  'bg-[rgba(0,255,157,0.1)] text-accent-green',
+        violet: 'bg-[rgba(115,94,239,0.1)] text-accent-violet',
+    };
+    const dotColor = { cyan: 'bg-accent-cyan', green: 'bg-accent-green', violet: 'bg-accent-violet' };
     return (
-        <div className={`bg-bg-card border rounded-xl p-8 flex flex-col gap-5 hover:-translate-y-1 hover:shadow-lg transition-all ${borderMap[variant]}`}>
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-[1.4rem] font-black ${letterBg[variant]}`}>{letter}</div>
+        <div className={`bg-bg-card border rounded-xl p-8 flex flex-col gap-5 hover:-translate-y-1 transition-all duration-300 ${borderMap[variant]}`}
+             style={{ borderRadius: 24 }}>
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-[1.3rem] font-bold ${letterBg[variant]}`}>{letter}</div>
             <div>
                 <Badge variant={variant}>{badge}</Badge>
-                <h3 className="text-lg font-bold mt-2 leading-snug">{title}</h3>
+                <h3 className="text-base font-semibold mt-2 leading-snug text-text-primary">{title}</h3>
             </div>
             <p className="text-sm text-text-secondary leading-relaxed">{desc}</p>
             <ul className="flex flex-col gap-2">
                 {features.map((f) => (
                     <li key={f} className="flex items-start gap-2.5 text-[0.82rem] text-text-secondary">
-                        <span className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${variant === 'cyan' ? 'bg-accent-cyan' : variant === 'green' ? 'bg-accent-green' : 'bg-[#a78bfa]'}`} />
+                        <span className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${dotColor[variant]}`} />
                         {f}
                     </li>
                 ))}
@@ -163,11 +173,11 @@ function PillarCard({ letter, badge, variant, title, desc, features, tags }) {
     );
 }
 
-/* ── Flow Panel ── */
+/* -- Flow Panel -- */
 const FLOWS = [
     {
         id: 0, label: 'Commuter', badge: 'cyan', color: 'cyan',
-        title: 'Everyday Commuter — Smart Routing',
+        title: 'Everyday Commuter  Smart Routing',
         desc: 'The public-facing layer. Every citizen benefits from AI-optimized routing without any special access.',
         steps: [
             ['Open the public app', 'Enter your destination as usual'],
@@ -179,7 +189,7 @@ const FLOWS = [
     {
         id: 1, label: 'Ambulance', badge: 'red', color: 'red',
         title: 'Verified Ambulance Dispatcher',
-        desc: 'Planned Green Corridor — zero stops from accident site to hospital.',
+        desc: 'Planned Green Corridor  zero stops from accident site to hospital.',
         steps: [
             ['Dispatcher logs in', 'Authenticates via secure Green Corridor Portal with hospital credentials'],
             ['Enter Route', 'Our custom A* graph algorithm calculates the fastest, clearest path'],
@@ -189,23 +199,23 @@ const FLOWS = [
     },
     {
         id: 2, label: 'Visual Override', badge: 'amber', color: 'amber',
-        title: 'Unexpected Emergency — Visual Failsafe',
-        desc: 'No GPS, no portal — the Edge-AI camera detects the vehicle and acts autonomously.',
+        title: 'Unexpected Emergency  Visual Failsafe',
+        desc: 'No GPS, no portal  the Edge-AI camera detects the vehicle and acts autonomously.',
         steps: [
-            ['Ambulance approaches', 'Not using the portal — GPS unavailable. Standard approach to intersection'],
-            ['YOLO Detection', 'Camera detects Class: Ambulance with 97%+ confidence — shape, color, strobe pattern'],
-            ['Safety Buffer Protocol', '3-second yellow clearance → cross-traffic turns red → emergency lane turns green'],
+            ['Ambulance approaches', 'Not using the portal  GPS unavailable. Standard approach to intersection'],
+            ['YOLO Detection', 'Camera detects Class: Ambulance with 97%+ confidence  shape, color, strobe pattern'],
+            ['Safety Buffer Protocol', '3-second yellow clearance -> cross-traffic turns red -> emergency lane turns green'],
             ['Auto-resume', 'Once vehicle clears the frame, intersection instantly returns to AI dynamic cycle'],
         ],
     },
     {
         id: 3, label: 'VVIP Convoy', badge: 'violet', color: 'violet',
         title: 'VVIP & Security Convoy Protocol',
-        desc: 'Highest clearance tier — full route lock with extended buffers before and after the convoy.',
+        desc: 'Highest clearance tier  full route lock with extended buffers before and after the convoy.',
         steps: [
             ['Security Chief logs in', 'MFA-secured access with VVIP-tier credentials'],
             ['Route Mapping', 'System prioritizes wider roads and fewer complex intersections for convoy safety'],
-            ['Convoy Lock activated', 'Extended green buffer — cross-traffic held red before AND after convoy passes'],
+            ['Convoy Lock activated', 'Extended green buffer  cross-traffic held red before AND after convoy passes'],
             ['Node Release', 'Once the final vehicle clears a node, AI dynamic cycle resumes instantly'],
         ],
     },
@@ -213,6 +223,55 @@ const FLOWS = [
 
 function FlowsSection() {
     const [active, setActive] = useState(0);
+    const { t } = useLanguage();
+
+    const FLOWS = [
+        {
+            id: 0, labelKey: 'flow1Label', badge: 'cyan', color: 'cyan',
+            titleKey: 'flow1Title',
+            desc: 'The public-facing layer. Every citizen benefits from AI-optimized routing without any special access.',
+            steps: [
+                ['Open the public app', 'Enter your destination as usual'],
+                ['AI Overlay Applied', 'Base route from Google Maps API, augmented with live intersection wait times from SignalSync cameras'],
+                ['Dynamic Re-routing', 'If your route hits density >70%, the app reroutes you in real time, naturally balancing city-wide load'],
+                ['Arrive Faster', 'Average 40% reduction in intersection wait time citywide'],
+            ],
+        },
+        {
+            id: 1, labelKey: 'flow2Label', badge: 'red', color: 'red',
+            titleKey: 'flow2Title',
+            desc: 'Planned Green Corridor  zero stops from accident site to hospital.',
+            steps: [
+                ['Dispatcher logs in', 'Authenticates via secure Green Corridor Portal with hospital credentials'],
+                ['Enter Route', 'Our custom A* graph algorithm calculates the fastest, clearest path'],
+                ['Initiate Green Wave', 'System preempts every intersection 30 seconds before arrival'],
+                ['Zero Stops', 'Ambulance passes through a dynamically maintained green corridor end-to-end'],
+            ],
+        },
+        {
+            id: 2, labelKey: 'flow3Label', badge: 'amber', color: 'amber',
+            titleKey: 'flow3Title',
+            desc: 'No GPS, no portal  the Edge-AI camera detects the vehicle and acts autonomously.',
+            steps: [
+                ['Ambulance approaches', 'Not using the portal  GPS unavailable. Standard approach to intersection'],
+                ['YOLO Detection', 'Camera detects Class: Ambulance with 97%+ confidence  shape, color, strobe pattern'],
+                ['Safety Buffer Protocol', '3-second yellow clearance -> cross-traffic turns red -> emergency lane turns green'],
+                ['Auto-resume', 'Once vehicle clears the frame, intersection instantly returns to AI dynamic cycle'],
+            ],
+        },
+        {
+            id: 3, labelKey: 'flow4Label', badge: 'violet', color: 'violet',
+            titleKey: 'flow4Title',
+            desc: 'Highest clearance tier  full route lock with extended buffers before and after the convoy.',
+            steps: [
+                ['Security Chief logs in', 'MFA-secured access with VVIP-tier credentials'],
+                ['Route Mapping', 'System prioritizes wider roads and fewer complex intersections for convoy safety'],
+                ['Convoy Lock activated', 'Extended green buffer  cross-traffic held red before AND after convoy passes'],
+                ['Node Release', 'Once the final vehicle clears a node, AI dynamic cycle resumes instantly'],
+            ],
+        },
+    ];
+
     const flow = FLOWS[active];
     const stepNumColor = { cyan: 'bg-[rgba(0,245,255,0.12)] text-accent-cyan', red: 'bg-[rgba(255,59,92,0.12)] text-accent-red', amber: 'bg-[rgba(255,184,0,0.12)] text-accent-amber', violet: 'bg-[rgba(124,58,237,0.12)] text-[#a78bfa]' };
 
@@ -220,11 +279,10 @@ function FlowsSection() {
         <section id="flows" className="relative z-10 py-24">
             <div className="max-w-[1200px] mx-auto px-10">
                 <div className="flex items-center gap-2 mb-4 text-accent-cyan text-xs font-bold uppercase tracking-widest">
-                    <span className="w-5 h-0.5 bg-accent-cyan rounded-full" />{flow.desc === 'User Journeys' ? 'User Journeys' : 'User Journeys'}
+                    <span className="w-5 h-0.5 bg-accent-cyan rounded-full" />{t('flowsLabel')}
                 </div>
                 <h2 className="text-4xl font-extrabold tracking-tight leading-tight mb-3">
-                    {/* Hack to use useLanguage without passing t into the component as a prop, though it is not optimal. But better is to just render the standard title if no t hook is here. Wait, actually I will need to pass t or fetch it via useLanguage inside FlowsSection. */}
-                    Four Mission-Critical <span className="grad-text">Use Cases</span>
+                    {t('flowsTitle')}
                 </h2>
 
                 {/* Tabs */}
@@ -233,7 +291,7 @@ function FlowsSection() {
                         <button key={f.id} onClick={() => setActive(i)}
                             className={`flex-1 py-2 px-4 rounded-lg text-[0.85rem] font-semibold transition-all font-sans ${active === i ? 'bg-bg-card text-accent-cyan shadow-[0_2px_8px_rgba(0,0,0,0.3)]' : 'text-text-muted hover:text-text-secondary'
                                 }`}>
-                            {f.label}
+                            {t(f.labelKey)}
                         </button>
                     ))}
                 </div>
@@ -243,7 +301,7 @@ function FlowsSection() {
                     {/* Steps */}
                     <div className="flex flex-col gap-4">
                         <Badge variant={flow.badge}>{flow.badge === 'cyan' ? 'Flow 1' : flow.badge === 'red' ? 'Flow 2' : flow.badge === 'amber' ? 'Flow 3' : 'Flow 4'}</Badge>
-                        <h3 className="text-2xl font-extrabold mt-2">{flow.title}</h3>
+                        <h3 className="text-2xl font-extrabold mt-2">{t(flow.titleKey)}</h3>
                         <p className="text-text-secondary text-sm">{flow.desc}</p>
                         {flow.steps.map(([title, desc], i) => (
                             <div key={i} className="flex gap-4 items-start bg-white/[0.02] border border-white/5 rounded-xl p-4">
@@ -264,7 +322,7 @@ function FlowsSection() {
                             {flow.id === 0 && (
                                 <>
                                     <div className="text-[0.75rem] text-text-muted mb-3">LIVE ROUTE OPTIMIZER</div>
-                                    <div className="flex items-center gap-2 py-2 border-b border-white/5 text-xs"><span className="w-2 h-2 rounded-full bg-accent-green" />MG Road → City Hospital<span className="ml-auto text-accent-green font-bold">12 min ✓</span></div>
+                                    <div className="flex items-center gap-2 py-2 border-b border-white/5 text-xs"><span className="w-2 h-2 rounded-full bg-accent-green" />MG Road {'->'}  City Hospital<span className="ml-auto text-accent-green font-bold">12 min </span></div>
                                     <div className="flex items-center gap-2 py-2 text-xs opacity-60"><span className="w-2 h-2 rounded-full bg-accent-red" /><span className="line-through text-text-muted">Via Highway 4</span><span className="ml-auto text-accent-red">Congested</span></div>
                                     <div className="mt-4"><div className="text-[0.72rem] text-text-muted mb-1.5">NEXT INTERSECTION WAIT</div><div className="h-1.5 bg-white/5 rounded-full overflow-hidden"><div className="h-full progress-fill-green" style={{ width: '20%' }} /></div><div className="text-xs text-accent-green mt-1">~8 seconds</div></div>
                                 </>
@@ -272,7 +330,7 @@ function FlowsSection() {
                             {flow.id === 1 && (
                                 <>
                                     <div className="text-[0.75rem] text-text-muted mb-3">GREEN CORRIDOR STATUS</div>
-                                    {[['green', 'Node 1 — MG Road', 'GREEN ✓'], ['green', 'Node 2 — Station Rd', 'GREEN ✓'], ['amber', 'Node 3 — Jubilee Hills', 'PREP ⏱'], ['cyan', 'Node 4 — Sec 12', 'QUEUED'], ['cyan', 'City Hospital', 'QUEUED']].map(([c, n, s]) => (
+                                    {[['green', 'Node 1  MG Road', 'GREEN '], ['green', 'Node 2  Station Rd', 'GREEN '], ['amber', 'Node 3  Jubilee Hills', 'PREP '], ['cyan', 'Node 4  Sec 12', 'QUEUED'], ['cyan', 'City Hospital', 'QUEUED']].map(([c, n, s]) => (
                                         <div key={n} className={`flex items-center gap-2 p-2 rounded-lg text-xs mb-1.5 border cnode-${c === 'amber' ? 'preparing' : c === 'cyan' ? 'pending' : 'active'}`}><StatusDot color={c} />{n}<Badge variant={c === 'green' ? 'green' : c === 'amber' ? 'amber' : 'cyan'} className="ml-auto text-[0.65rem] py-0">{s}</Badge></div>
                                     ))}
                                     <div className="flex gap-4 mt-3 pt-3 border-t border-white/5 text-xs"><div><div className="text-text-muted">ETA</div><div className="font-bold text-accent-green">4m 12s</div></div><div><div className="text-text-muted">Stops</div><div className="font-bold text-accent-green">0</div></div><div><div className="text-text-muted">Nodes</div><div className="font-bold text-accent-cyan">5/5</div></div></div>
@@ -286,14 +344,14 @@ function FlowsSection() {
                                         <div className="cam-detect-box">Ambulance · 97.2%</div>
                                         <div className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent-cyan to-transparent animate-scan-fast opacity-60" />
                                     </div>
-                                    <div className="flex gap-2 mt-3 flex-wrap"><Badge variant="red">OVERRIDE ACTIVE</Badge><Badge variant="amber">YELLOW → RED → GREEN</Badge></div>
+                                    <div className="flex gap-2 mt-3 flex-wrap"><Badge variant="red">OVERRIDE ACTIVE</Badge><Badge variant="amber">YELLOW {'->'} RED {'->'} GREEN</Badge></div>
                                 </>
                             )}
                             {flow.id === 3 && (
                                 <>
                                     <div className="text-[0.75rem] text-text-muted mb-2">CONVOY LOCK STATUS</div>
                                     <div className="flex justify-center gap-2 my-3">{['[P]', '[VIP]', '[P]'].map((v, i) => <div key={i} className={`text-sm font-bold font-mono bg-white/5 border rounded-lg px-3 py-2 ${i === 1 ? 'bg-[rgba(255,184,0,0.15)] border-accent-amber text-accent-amber' : 'border-white/5 text-text-muted'}`}>{v}</div>)}</div>
-                                    <div className="text-center text-xs text-[#a78bfa] mb-3">← Extended Buffer Zone →</div>
+                                    <div className="text-center text-xs text-[#a78bfa] mb-3"> Extended Buffer Zone {'->'} </div>
                                     <div className="grid grid-cols-2 gap-2">
                                         <div className="bg-[rgba(255,59,92,0.15)] border border-accent-red/30 rounded-lg p-3 text-center"><div className="text-[0.7rem] text-text-muted">Cross Traffic</div><div className="text-accent-red font-bold text-sm">HELD RED</div></div>
                                         <div className="bg-[rgba(0,255,157,0.1)] border border-accent-green/30 rounded-lg p-3 text-center"><div className="text-[0.7rem] text-text-muted">Convoy Lane</div><div className="text-accent-green font-bold text-sm">ALL GREEN</div></div>
@@ -308,33 +366,42 @@ function FlowsSection() {
     );
 }
 
-/* ── FAQ ── */
+/* -- FAQ -- */
 const FAQS = [
     { q: 'What if two ambulances approach from opposite directions?', a: 'The system assigns priority via a FIFO queue. If hospital integration is active, the vehicle carrying the more critical patient (e.g., Cardiac Arrest > Broken Arm) receives priority. The secondary ambulance gets a 3-second delayed corridor activation.' },
     { q: 'What if the camera goes down or is covered in rain?', a: 'The system automatically detects a null or degraded camera feed and reverts to pre-programmed fixed-timer fallback mode. An alert is sent to the control center. Normal AI operation resumes automatically when the feed is restored.' },
     { q: 'How do we prevent abuse of the VVIP system?', a: 'Every "Green Corridor" request is immutably logged with a timestamp, user ID, GPS track, and session token. MFA is required for VVIP-tier access. All logs are auditable and tamper-evident.' },
     { q: 'What if the internet connection is lost mid-corridor?', a: 'Each intersection node caches the corridor plan locally at activation. If cloud connectivity drops, the node executes its pre-cached green schedule autonomously until the last downloaded instruction expires, then defaults to safe fixed-timer mode.' },
     { q: 'Does this worsen pedestrian safety at crossings?', a: 'No. The algorithm enforces a non-negotiable minimum 15-second pedestrian phase regardless of vehicle density. Emergency overrides always trigger the 3-second yellow safety buffer, giving pedestrians time to clear.' },
-    { q: 'Is this scalable to an entire city?', a: 'Yes. Edge AI at each node means processing is distributed — no single server bottleneck. The central server only handles coordination signals (WebSocket messages), not video processing.' },
+    { q: 'Is this scalable to an entire city?', a: 'Yes. Edge AI at each node means processing is distributed  no single server bottleneck. The central server only handles coordination signals (WebSocket messages), not video processing.' },
 ];
 
 function FaqSection() {
     const [open, setOpen] = useState(null);
+    const { t } = useLanguage();
+    const FAQS = [
+        { qKey: 'faq1Q', aKey: 'faq1A' },
+        { qKey: 'faq2Q', aKey: 'faq2A' },
+        { qKey: 'faq3Q', aKey: 'faq3A' },
+        { qKey: 'faq4Q', aKey: 'faq4A' },
+        { qKey: 'faq5Q', aKey: 'faq5A' },
+        { qKey: 'faq6Q', aKey: 'faq6A' },
+    ];
     return (
         <section id="faq" className="relative z-10 py-24">
             <div className="max-w-[1200px] mx-auto px-10">
-                <div className="flex items-center gap-2 mb-4 text-accent-cyan text-xs font-bold uppercase tracking-widest"><span className="w-5 h-0.5 bg-accent-cyan rounded-full" />Judge Q&A</div>
-                <h2 className="text-4xl font-extrabold tracking-tight mb-3">Edge Cases &amp; <span className="grad-text">Fail-Safes</span></h2>
-                <p className="text-text-secondary mb-12 max-w-xl">SignalSync anticipates real-world failure modes. Every "What if?" has an engineered answer.</p>
+                <div className="flex items-center gap-2 mb-4 text-accent-cyan text-xs font-bold uppercase tracking-widest"><span className="w-5 h-0.5 bg-accent-cyan rounded-full" />{t('faqLabel')}</div>
+                <h2 className="text-4xl font-extrabold tracking-tight mb-3">{t('faqTitle')} <span className="grad-text">{t('faqTitle').split(' ').slice(-1)[0]}</span></h2>
+                <p className="text-text-secondary mb-12 max-w-xl">{t('faqDesc')}</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                     {FAQS.map((faq, i) => (
                         <div key={i} onClick={() => setOpen(open === i ? null : i)}
                             className={`bg-bg-card border rounded-xl p-5 cursor-pointer transition-all hover:border-accent-cyan/20 ${open === i ? 'border-accent-cyan/25' : 'border-white/5'}`}>
                             <div className="flex items-center gap-2.5 font-semibold text-sm">
-                                <span>{faq.q}</span>
-                                <span className={`ml-auto text-text-muted transition-transform ${open === i ? 'rotate-180 text-accent-cyan' : ''}`}>↓</span>
+                                <span>{t(faq.qKey)}</span>
+                                <span className={`ml-auto text-text-muted transition-transform ${open === i ? 'rotate-180 text-accent-cyan' : ''}`}></span>
                             </div>
-                            {open === i && <p className="text-text-secondary text-[0.875rem] leading-relaxed mt-3 pt-3 border-t border-white/5">{faq.a}</p>}
+                            {open === i && <p className="text-text-secondary text-[0.875rem] leading-relaxed mt-3 pt-3 border-t border-white/5">{t(faq.aKey)}</p>}
                         </div>
                     ))}
                 </div>
@@ -343,65 +410,103 @@ function FaqSection() {
     );
 }
 
-/* ── Main Page Export ── */
+    /* -- Main Page Export -- */
 export default function HomePage() {
     const { t } = useLanguage();
     return (
         <>
+            {/* ── VISUO BACKGROUND (home page only) ── */}
+            {/* Base near-black */}
+            <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', background: '#05040d' }} />
+
+            {/* Central purple cone/spotlight from top-center */}
+            <div style={{
+                position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
+                background: [
+                    'radial-gradient(ellipse 50% 60% at 50% -5%, rgba(141,86,253,0.72) 0%, rgba(115,94,239,0.35) 38%, transparent 65%)',
+                    'radial-gradient(ellipse 90% 55% at 50% -8%, rgba(100,60,220,0.25) 0%, transparent 62%)',
+                    'radial-gradient(ellipse 22% 70% at 0% 50%, rgba(115,94,239,0.08) 0%, transparent 70%)',
+                    'radial-gradient(ellipse 22% 70% at 100% 50%, rgba(115,94,239,0.08) 0%, transparent 70%)',
+                ].join(', '),
+            }} />
+
+            {/* Top 1px purple edge glow line */}
+            <div style={{
+                position: 'fixed', top: 0, left: 0, right: 0, height: '1px', zIndex: 9999, pointerEvents: 'none',
+                background: 'linear-gradient(90deg, transparent 0%, rgba(115,94,239,0.55) 18%, rgba(141,86,253,1) 50%, rgba(115,94,239,0.55) 82%, transparent 100%)',
+                boxShadow: '0 0 22px 4px rgba(141,86,253,0.45), 0 0 60px 8px rgba(115,94,239,0.18)',
+            }} />
+
+            {/* Bottom 1px blue-purple edge glow line */}
+            <div style={{
+                position: 'fixed', bottom: 0, left: 0, right: 0, height: '1px', zIndex: 9999, pointerEvents: 'none',
+                background: 'linear-gradient(90deg, transparent 0%, rgba(77,124,255,0.65) 15%, rgba(141,86,253,0.95) 50%, rgba(77,124,255,0.65) 85%, transparent 100%)',
+                boxShadow: '0 0 28px 5px rgba(77,124,255,0.30), 0 0 80px 14px rgba(141,86,253,0.18)',
+            }} />
+
             <Navbar />
 
-            {/* HERO */}
+            {/* ── HERO ─────────────────────────────────────────────── */}
             <section id="hero" className="relative min-h-screen flex items-center pt-28 pb-20 overflow-hidden">
-                <div className="glow-blob glow-blob-cyan w-[600px] h-[600px] -top-48 -left-24 opacity-60" style={{ background: 'rgba(0,245,255,0.12)' }} />
-                <div className="glow-blob" style={{ width: '500px', height: '500px', top: '-100px', right: '-150px', opacity: 0.5, background: 'rgba(124,58,237,0.12)' }} />
-                <div className="max-w-[1200px] mx-auto px-10 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center w-full">
-                    <div>
-                        {/* Badge */}
-                        <div className="inline-flex items-center gap-2.5 bg-accent-cyan/10 border border-accent-cyan/20 rounded-full px-4 py-2 mb-6 text-sm text-text-secondary">
-                            <StatusDot color="green" /><span>AI Traffic System — Active</span><Badge variant="cyan">v1.0</Badge>
-                        </div>
-                        <h1 className="text-5xl font-black leading-[1.05] tracking-[-1.5px] mb-5 animate-fade-in-up">
-                            {t('heroTitle') || <>Intelligent Traffic<br />That <span className="grad-text">Saves Lives</span><br />in Real Time</>}
-                        </h1>
-                        <p className="text-[1.05rem] text-text-secondary leading-relaxed max-w-[520px] mb-8">
-                            {t('heroDesc')}
-                        </p>
-                        <div className="flex flex-wrap gap-3 mb-12">
-                            <a href="#pillars" className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-base font-bold bg-sky-500 hover:bg-sky-400 text-white hover:-translate-y-px transition-all">{t('exploreSolution')}</a>
-                            <Link href="/dashboard" className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-base font-bold bg-white/5 border border-white/5 hover:bg-white/10 hover:-translate-y-px transition-all no-underline text-text-primary">{t('liveDashboard')}</Link>
-                        </div>
-                        {/* Stats bar */}
-                        <div className="flex flex-wrap bg-white/[0.03] border border-white/5 rounded-xl overflow-hidden divide-x divide-white/5">
-                            {[{ target: 94, unit: '%', label: 'Emergency Response Improvement' }, { target: 3, unit: 's', label: 'Corridor Activation Time' }, { target: 40, unit: '%', label: 'Urban Congestion Reduction' }, { target: 95, unit: '%+', label: 'YOLO Detection Accuracy' }].map(s => (
-                                <StatCard key={s.label} {...s} />
-                            ))}
-                        </div>
+                {/* Visuo purple radial glow */}
+                <div className="visuo-glow" style={{ width: 700, height: 700, top: '-250px', left: '50%', transform: 'translateX(-50%)', background: 'radial-gradient(ellipse at center, rgba(115,94,239,0.30) 0%, rgba(77,124,255,0.12) 40%, transparent 70%)' }} />
+
+                <div className="max-w-[1100px] mx-auto px-8 w-full flex flex-col items-center text-center">
+                    {/* Pill badge */}
+                    <div className="visuo-badge mb-8">
+                        <StatusDot color="green" />
+                        <span>{t('heroBadge')}</span>
                     </div>
-                    <HeroVisual />
+
+                    <h1 className="text-5xl sm:text-6xl md:text-7xl font-normal leading-[1.1] tracking-[-1px] mb-6 animate-fade-in-up" style={{ fontFamily: 'Inter, sans-serif' }}>
+                        {t('heroTitle') || <>Intelligent Traffic<br />That <span style={{ color: '#735EEF' }}>Saves Lives</span><br />in Real Time</>}
+                    </h1>
+
+                    <p className="text-lg text-text-secondary leading-relaxed max-w-[540px] mb-10">
+                        {t('heroDesc')}
+                    </p>
+
+                    {/* Visuo pill CTAs */}
+                    <div className="flex flex-wrap gap-4 justify-center mb-14">
+                        <a href="#pillars" className="visuo-btn-primary">{t('exploreSolution')}</a>
+                        <Link href="/dashboard" className="visuo-btn-ghost">{t('liveDashboard')}</Link>
+                    </div>
+
+                    {/* Stats bar */}
+                    <div className="flex flex-wrap bg-bg-card border rounded-xl overflow-hidden divide-x" style={{ borderColor: 'rgba(255,255,255,0.12)', borderRadius: 20, borderWidth: '0.8px' }}>
+                        {[
+                            { target: 94, unit: '%',  label: t('stat1Label') },
+                            { target: 3,  unit: 's',  label: t('stat2Label') },
+                            { target: 40, unit: '%',  label: t('stat3Label') },
+                            { target: 95, unit: '%+', label: t('stat4Label') },
+                        ].map(s => <StatCard key={s.label} {...s} />)}
+                    </div>
                 </div>
             </section>
 
             <div className="g-divider" />
 
-            {/* PROBLEM */}
-            <section id="problem" className="relative z-10 py-24">
-                <div className="max-w-[1200px] mx-auto px-10">
-                    <div className="flex items-center gap-2 mb-4 text-accent-cyan text-xs font-bold uppercase tracking-widest"><span className="w-5 h-0.5 bg-accent-cyan rounded-full" />The Crisis</div>
-                    <h2 className="text-4xl font-extrabold tracking-tight mb-3">{t('crisisTitle')}</h2>
-                    <p className="text-text-secondary mb-12 max-w-xl">{t('crisisDesc')}</p>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* ── PROBLEM ──────────────────────────────────────────── */}
+            <section id="problem" className="relative z-10 py-28">
+                <div className="max-w-[1100px] mx-auto px-8">
+                    <div className="flex justify-center mb-5">
+                        <span className="visuo-section-badge">{t('crisisLabel')}</span>
+                    </div>
+                    <h2 className="text-4xl sm:text-5xl font-normal text-center mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>{t('crisisTitle')}</h2>
+                    <p className="text-text-secondary text-center mb-14 max-w-xl mx-auto">{t('crisisDesc')}</p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                         {[
-                            { icon: '🏥', bg: 'bg-[rgba(255,59,92,0.15)]', color: 'text-accent-red', title: 'The Golden Hour Crisis', desc: 'Ambulances spend 10–15% of travel time idling at red lights — directly cutting into the critical 60-minute survival window after trauma.', stat: '12.5%', statLabel: 'average journey wasted at intersections' },
-                            { icon: '🛡️', bg: 'bg-[rgba(255,184,0,0.15)]', color: 'text-accent-amber', title: 'VVIP Security Vulnerabilities', desc: 'Convoys stopped at red lights become static targets. Traditional methods deploy hundreds of police hours in advance, disrupting the entire city.', stat: '100s', statLabel: 'of officers needed for manual road blocks' },
-                            { icon: '🚗', bg: 'bg-[rgba(0,245,255,0.10)]', color: 'text-accent-cyan', title: 'Inefficient "Dumb" Grids', desc: 'Fixed-timer PLCs keep lanes green even when completely empty, burning millions of gallons of fuel annually and creating localized pollution spikes.', stat: 'Millions', statLabel: 'of gallons wasted annually from idle signals' },
-                        ].map(({ icon, bg, color, title, desc, stat, statLabel }) => (
-                            <div key={title} className="bg-bg-card border border-white/5 rounded-xl p-8 hover:-translate-y-1 transition-all">
-                                <div className={`w-12 h-12 rounded-xl ${bg} flex items-center justify-center text-2xl mb-4`}>{icon}</div>
-                                <h3 className="font-bold text-lg mb-2">{title}</h3>
-                                <p className="text-text-secondary text-sm leading-relaxed mb-5">{desc}</p>
-                                <div className="flex items-center gap-2.5 pt-4 border-t border-white/5">
-                                    <span className={`text-2xl font-black font-mono ${color}`}>{stat}</span>
-                                    <span className="text-xs text-text-muted">{statLabel}</span>
+                            { icon: '🚨', bg: 'rgba(248,113,113,0.08)', color: '#f87171', border: 'rgba(248,113,113,0.18)', titleKey: 'crisis1Title', descKey: 'crisis1Desc', statKey: 'crisis1Stat', statLabelKey: 'crisis1StatLabel' },
+                            { icon: '⏱️', bg: 'rgba(251,191,36,0.08)',  color: '#fbbf24', border: 'rgba(251,191,36,0.18)',  titleKey: 'crisis2Title', descKey: 'crisis2Desc', statKey: 'crisis2Stat', statLabelKey: 'crisis2StatLabel' },
+                            { icon: '📡', bg: 'rgba(115,94,239,0.08)',  color: '#735EEF', border: 'rgba(115,94,239,0.18)',  titleKey: 'crisis3Title', descKey: 'crisis3Desc', statKey: 'crisis3Stat', statLabelKey: 'crisis3StatLabel' },
+                        ].map(({ icon, bg, color, border, titleKey, descKey, statKey, statLabelKey }) => (
+                            <div key={titleKey} className="visuo-card p-7 flex flex-col gap-4 hover:-translate-y-1 transition-all duration-300">
+                                <div className="w-11 h-11 rounded-xl flex items-center justify-center text-xl" style={{ background: bg, border: `0.8px solid ${border}` }}>{icon}</div>
+                                <h3 className="font-semibold text-base text-text-primary">{t(titleKey)}</h3>
+                                <p className="text-text-secondary text-sm leading-relaxed flex-1">{t(descKey)}</p>
+                                <div className="flex items-center gap-2 pt-3 border-t" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+                                    <span className="text-2xl font-black font-mono" style={{ color }}>{t(statKey)}</span>
+                                    <span className="text-xs text-text-muted">{t(statLabelKey)}</span>
                                 </div>
                             </div>
                         ))}
@@ -411,16 +516,18 @@ export default function HomePage() {
 
             <div className="g-divider" />
 
-            {/* PILLARS */}
-            <section id="pillars" className="relative z-10 py-24">
-                <div className="max-w-[1200px] mx-auto px-10">
-                    <div className="flex items-center gap-2 mb-4 text-accent-cyan text-xs font-bold uppercase tracking-widest"><span className="w-5 h-0.5 bg-accent-cyan rounded-full" />The Solution</div>
-                    <h2 className="text-4xl font-extrabold tracking-tight mb-3">{t('pillarsTitle')}</h2>
-                    <p className="text-text-secondary mb-12 max-w-xl">{t('pillarsDesc')}</p>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <PillarCard letter="A" badge="Pillar A" variant="cyan" title="AI Vision & Dynamic Signal Control" desc="YOLOv8 cameras count vehicles in real time and allocate green time proportionally — never wasting a cycle on an empty lane." features={['Real-time vehicle density detection', 'Dynamic green time allocation', 'Live Google Maps density overlay']} tags={['YOLOv8', 'OpenCV', 'WebSocket']} />
-                        <PillarCard letter="B" badge="Pillar B" variant="green" title="Visual Failsafe — Camera Override" desc="Edge-AI detects ambulance shape, color, and strobes locally. No GPS or portal needed — triggers a 3-second safe clearance automatically." features={['Works offline, no cloud needed', '3s yellow → red → green sequence', '97%+ detection confidence']} tags={['Edge AI', 'PyTorch', 'Offline']} />
-                        <PillarCard letter="C" badge="Pillar C" variant="violet" title="Verified Green Corridor Portal" desc="Secure dispatcher portal for hospitals and security chiefs to initiate a zero-stop green wave — preempting signals 30 seconds ahead." features={['RBAC + MFA access control', 'Predictive 30s preemption', 'Immutable session audit trail']} tags={['RBAC + MFA', 'FastAPI', 'React.js']} />
+            {/* ── PILLARS ──────────────────────────────────────────── */}
+            <section id="pillars" className="relative z-10 py-28">
+                <div className="max-w-[1100px] mx-auto px-8">
+                    <div className="flex justify-center mb-5">
+                        <span className="visuo-section-badge">{t('solutionLabel')}</span>
+                    </div>
+                    <h2 className="text-4xl sm:text-5xl font-normal text-center mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>{t('pillarsTitle')}</h2>
+                    <p className="text-text-secondary text-center mb-14 max-w-xl mx-auto">{t('pillarsDesc')}</p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <PillarCard letter="A" badge="Pillar A" variant="cyan"   title={t('pillarATitle')} desc={t('pillarADesc')} features={[t('pillarAF1'), t('pillarAF2'), t('pillarAF3')]} tags={['YOLOv8', 'OpenCV', 'WebSocket']} />
+                        <PillarCard letter="B" badge="Pillar B" variant="green"  title={t('pillarBTitle')} desc={t('pillarBDesc')} features={[t('pillarBF1'), t('pillarBF2'), t('pillarBF3')]} tags={['Edge AI', 'PyTorch', 'Offline']} />
+                        <PillarCard letter="C" badge="Pillar C" variant="violet" title={t('pillarCTitle')} desc={t('pillarCDesc')} features={[t('pillarCF1'), t('pillarCF2'), t('pillarCF3')]} tags={['RBAC + MFA', 'FastAPI', 'React.js']} />
                     </div>
                 </div>
             </section>
@@ -437,56 +544,72 @@ export default function HomePage() {
 
             <div className="g-divider" />
 
-            {/* FOOTER */}
-            <footer className="relative z-10 border-t border-white/5 bg-[rgba(13,17,23,0.6)] backdrop-blur-xl">
-                <div className="max-w-[1200px] mx-auto px-10 py-14 grid grid-cols-1 md:grid-cols-4 gap-10">
+            {/* ── CTA AREA BEFORE FOOTER ────────────────────────── */}
+            <section className="relative z-10 py-28 text-center overflow-hidden">
+                <div className="visuo-glow" style={{ width: 600, height: 400, bottom: '-100px', left: '50%', transform: 'translateX(-50%)', background: 'radial-gradient(ellipse at center, rgba(115,94,239,0.22) 0%, transparent 70%)' }} />
+                <div className="relative z-10 max-w-[700px] mx-auto px-8">
+                    <span className="visuo-badge mb-6 inline-flex">Get started today</span>
+                    <h2 className="text-4xl sm:text-5xl font-normal mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>Ready to transform your city&apos;s traffic?</h2>
+                    <p className="text-text-secondary mb-10 max-w-md mx-auto">Deploy AI-powered signal management across every intersection.</p>
+                    <div className="flex gap-4 justify-center">
+                        <Link href="/dashboard" className="visuo-btn-primary">Open Live Dashboard</Link>
+                        <Link href="/portal" className="visuo-btn-ghost">Launch Green Corridor</Link>
+                    </div>
+                </div>
+            </section>
+
+            <div className="g-divider" />
+
+            {/* ── FOOTER ───────────────────────────────────────────── */}
+            <footer className="relative z-10 border-t" style={{ borderColor: 'rgba(255,255,255,0.08)', background: '#0D0B12' }}>
+                <div className="max-w-[1100px] mx-auto px-8 py-14 grid grid-cols-1 md:grid-cols-4 gap-10">
                     {/* Brand */}
                     <div className="md:col-span-1">
-                        <Link href="/" className="flex items-center gap-2.5 font-extrabold text-xl no-underline text-white mb-3">
-                            <div className="w-9 h-9 rounded-[6px] bg-gradient-to-br from-accent-cyan to-accent-violet flex items-center justify-center neon-cyan">⬡</div>
-                            <span><span className="text-accent-cyan">Signal</span>Sync</span>
+                        <Link href="/" className="flex items-center gap-2.5 font-semibold text-lg no-underline text-white mb-3" style={{ fontFamily: 'Inter, sans-serif' }}>
+                            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #735EEF, #4D7CFF)' }} />
+                            <span><span style={{ color: '#735EEF' }}>Signal</span>Sync</span>
                         </Link>
-                        <p className="text-text-muted text-xs leading-relaxed mb-4">AI-powered intelligent traffic management. Saving lives, securing convoys, reducing congestion.</p>
-                        <div className="flex items-center gap-2"><StatusDot color="green" /><span className="text-xs text-text-secondary">All Systems Operational</span></div>
+                        <p className="text-text-muted text-xs leading-relaxed mb-4">{t('footerDesc')}</p>
+                        <div className="flex items-center gap-2"><StatusDot color="green" /><span className="text-xs text-text-secondary">{t('footerStatus')}</span></div>
                     </div>
-                    {/* Emergency Contacts */}
+                    {/* Emergency */}
                     <div>
-                        <div className="text-[0.7rem] font-bold uppercase tracking-widest text-text-muted mb-4">Emergency Contacts</div>
+                        <div className="text-[0.65rem] font-semibold uppercase tracking-widest text-text-muted mb-4">{t('footerEmergency')}</div>
                         <div className="flex flex-col gap-2.5">
-                            {[['Ambulance (National)', '102'], ['Fire Brigade', '101'], ['Police', '100'], ['AIIMS Delhi', '011-2658-8500'], ['GVK EMRI', '108']].map(([l, v]) => (
-                                <div key={l} className="flex justify-between items-center text-xs border-b border-white/5 pb-2">
+                            {[['Ambulance', '102'], ['Fire Brigade', '101'], ['Police', '100'], ['AIIMS Delhi', '011-2658-8500'], ['GVK EMRI', '108']].map(([l, v]) => (
+                                <div key={l} className="flex justify-between items-center text-xs border-b pb-2" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
                                     <span className="text-text-secondary">{l}</span>
-                                    <span className="font-mono font-bold text-accent-green">{v}</span>
+                                    <span className="font-mono font-bold" style={{ color: '#4ade80' }}>{v}</span>
                                 </div>
                             ))}
                         </div>
                     </div>
                     {/* Cities */}
                     <div>
-                        <div className="text-[0.7rem] font-bold uppercase tracking-widest text-text-muted mb-4">Target Cities</div>
+                        <div className="text-[0.65rem] font-semibold uppercase tracking-widest text-text-muted mb-4">{t('footerCities')}</div>
                         <div className="grid grid-cols-2 gap-1.5">
-                            {['Mumbai', 'Delhi', 'Bengaluru', 'Hyderabad', 'Chennai', 'Pune', 'Kolkata', 'Ahmedabad'].map(c => (
-                                <div key={c} className="flex items-center gap-1.5 text-xs text-text-secondary hover:text-accent-cyan transition-colors cursor-default">
-                                    <span className="w-1 h-1 rounded-full bg-accent-cyan/50" />{c}
+                            {['Mumbai','Delhi','Bengaluru','Hyderabad','Chennai','Pune','Kolkata','Ahmedabad'].map(c => (
+                                <div key={c} className="flex items-center gap-1.5 text-xs text-text-secondary hover:text-white transition-colors cursor-default">
+                                    <span className="w-1 h-1 rounded-full" style={{ background: '#735EEF' }} />{c}
                                 </div>
                             ))}
                         </div>
                     </div>
-                    {/* Quick Links */}
+                    {/* Links */}
                     <div>
-                        <div className="text-[0.7rem] font-bold uppercase tracking-widest text-text-muted mb-4">Quick Access</div>
+                        <div className="text-[0.65rem] font-semibold uppercase tracking-widest text-text-muted mb-4">{t('footerQuickAccess')}</div>
                         <div className="flex flex-col gap-2">
-                            <Link href="/dashboard" className="text-xs text-text-secondary hover:text-accent-cyan no-underline transition-colors">Live Dashboard</Link>
-                            <Link href="/portal" className="text-xs text-text-secondary hover:text-accent-cyan no-underline transition-colors">Green Corridor Portal</Link>
-                            <a href="#pillars" className="text-xs text-text-secondary hover:text-accent-cyan no-underline transition-colors">Three-Pillar Solution</a>
-                            <a href="#flows" className="text-xs text-text-secondary hover:text-accent-cyan no-underline transition-colors">User Journeys</a>
-                            <a href="#faq" className="text-xs text-text-secondary hover:text-accent-cyan no-underline transition-colors">Edge Cases &amp; FAQ</a>
+                            <Link href="/dashboard" className="text-xs text-text-secondary hover:text-white no-underline transition-colors">{t('liveDashboard')}</Link>
+                            <Link href="/portal"    className="text-xs text-text-secondary hover:text-white no-underline transition-colors">{t('footerPortal')}</Link>
+                            <a href="#pillars"      className="text-xs text-text-secondary hover:text-white no-underline transition-colors">{t('footerSolution')}</a>
+                            <a href="#flows"        className="text-xs text-text-secondary hover:text-white no-underline transition-colors">{t('footerUserJourneys')}</a>
+                            <a href="#faq"          className="text-xs text-text-secondary hover:text-white no-underline transition-colors">{t('footerEdgeCases')}</a>
                         </div>
                     </div>
                 </div>
-                <div className="border-t border-white/5 px-10 py-4 flex justify-between items-center flex-wrap gap-3">
-                    <span className="text-[0.7rem] text-text-muted">© 2026 SignalSync · India Innovates Hackathon · Prototype v1.0</span>
-                    <span className="text-[0.7rem] text-text-muted">Built with Next.js · React · Tailwind CSS</span>
+                <div className="px-8 py-4 flex justify-between items-center flex-wrap gap-3" style={{ borderTop: '0.8px solid rgba(255,255,255,0.06)' }}>
+                    <span className="text-[0.68rem] text-text-muted">© 2026 SignalSync · India Innovates Hackathon · Prototype v1.0</span>
+                    <span className="text-[0.68rem] text-text-muted">Built with Next.js · React · Inter · Tailwind CSS</span>
                 </div>
             </footer>
         </>

@@ -1,4 +1,4 @@
-from typing import Optional
+﻿from typing import Optional
 import firebase_admin
 from firebase_admin import credentials, auth as firebase_auth
 from fastapi import Depends, HTTPException, Request, status
@@ -19,14 +19,14 @@ def init_firebase() -> None:
     global _firebase_app
     path = settings.firebase_service_account_path
     if not path:
-        log.warning("Firebase service account path not set — skipping Firebase init (auth endpoints will be unavailable)")
+        log.warning("Firebase service account path not set  skipping Firebase init (auth endpoints will be unavailable)")
         return
     try:
         cred = credentials.Certificate(path)
         _firebase_app = firebase_admin.initialize_app(cred)
         log.info("Firebase Admin SDK initialised")
     except Exception as e:
-        log.warning("Firebase init failed — auth endpoints will be unavailable", error=str(e))
+        log.warning("Firebase init failed  auth endpoints will be unavailable", error=str(e))
 
 
 from jose import jwt, JWTError, ExpiredSignatureError
@@ -86,7 +86,7 @@ async def get_current_user(
     claims: dict = Depends(verify_auth_token),
     db: AsyncSession = Depends(get_db),
 ) -> User:
-    """Resolve ID/UID → DB User. Auto-provisions on first login."""
+    """Resolve ID/UID -> DB User. Auto-provisions on first login."""
     # Our local JWT sets 'uid', Firebase sets 'uid'
     uid = claims.get("uid")
     if not uid:
@@ -96,7 +96,7 @@ async def get_current_user(
     user = result.scalar_one_or_none()
 
     if not user:
-        # Auto-provision — role comes from Firebase custom claims
+        # Auto-provision  role comes from Firebase custom claims
         role_str = claims.get("role", "PUBLIC_USER")
         try:
             role = UserRole(role_str)
@@ -119,7 +119,7 @@ async def get_current_user(
     return user
 
 
-# ── Role guards ─────────────────────────────────────────────────────────────
+# -- Role guards -------------------------------------------------------------
 
 def require_role(minimum_role: UserRole):
     """Returns a FastAPI dependency that enforces a minimum role level."""

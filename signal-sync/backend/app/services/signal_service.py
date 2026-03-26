@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+﻿from datetime import datetime, timezone
 from typing import Optional
 from app.models.intersection import SignalState
 from app.redis_client import redis_set, redis_get, signal_key
@@ -81,7 +81,7 @@ class SignalService:
 
     @staticmethod
     async def emergency_override(intersection_id: int, vehicle_type: str) -> dict:
-        """Triggered by YOLO detection — 3 s yellow → all-red → green for emergency lane."""
+        """Triggered by YOLO detection  3 s yellow -> all-red -> green for emergency lane."""
         # Yellow clearance
         await SignalService.override(intersection_id, SignalState.OVERRIDE, 3, "emergency_yellow")
         await asyncio.sleep(3)

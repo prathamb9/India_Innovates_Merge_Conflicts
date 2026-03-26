@@ -30,9 +30,9 @@ export default function LanguagePicker() {
         }}>
             {/* Logo */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 8, background: '#1e3a5f', border: '1px solid rgba(56,189,248,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#38bdf8', fontSize: '1.1rem' }}>⬡</div>
+                <div style={{ width: 36, height: 36, borderRadius: 8, background: '#0c3547', border: '1px solid rgba(34,211,238,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#22d3ee', fontSize: '1.1rem' }}>🚥</div>
                 <span style={{ fontSize: '1.4rem', fontWeight: 800, color: '#f1f5f9' }}>
-                    <span style={{ color: '#38bdf8' }}>Signal</span>Sync
+                    <span style={{ color: '#22d3ee' }}>Signal</span>Sync
                 </span>
             </div>
 
@@ -59,8 +59,8 @@ export default function LanguagePicker() {
                             minWidth: 130,
                         }}
                         onMouseEnter={e => {
-                            e.currentTarget.style.background = 'rgba(56,189,248,0.08)';
-                            e.currentTarget.style.borderColor = 'rgba(56,189,248,0.35)';
+                            e.currentTarget.style.background = 'rgba(34,211,238,0.08)';
+                            e.currentTarget.style.borderColor = 'rgba(34,211,238,0.35)';
                         }}
                         onMouseLeave={e => {
                             e.currentTarget.style.background = 'rgba(255,255,255,0.03)';

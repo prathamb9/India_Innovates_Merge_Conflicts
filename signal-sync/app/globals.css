@@ -1,127 +1,200 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ── CSS Custom Properties ── */
+/* ── Visuo Design Tokens ── */
 :root {
-    --accent-cyan: #38bdf8;
-    --accent-green: #4ade80;
-    --accent-amber: #fbbf24;
-    --accent-red: #f87171;
+    /* Backgrounds */
+    --bg-deep:    #0a0910;
+    --bg-card:    #13111f;
+    --bg-inner:   #02071A;
+
+    /* Text */
+    --text-primary:   #FFFFFF;
+    --text-secondary: #C3C3C3;
+    --text-muted:     #7B7B8F;
+
+    /* Accents */
+    --accent-purple: #735EEF;
+    --accent-blue:   #4D7CFF;
+    --accent-cyan:   #67e8f9;
+    --accent-green:  #4ade80;
+    --accent-amber:  #fbbf24;
+    --accent-red:    #f87171;
     --accent-violet: #a78bfa;
-    --border: rgba(255, 255, 255, 0.07);
-    --border-active: rgba(56, 189, 248, 0.4);
+
+    /* Border */
+    --border:        rgba(255, 255, 255, 0.12);
+    --border-subtle: rgba(255, 255, 255, 0.06);
+    --border-active: rgba(115, 94, 239, 0.5);
+}
+
+/* ── Reset / Base ── */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
 }
 
 /* ── Scrollbar ── */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #0d1117; }
-::-webkit-scrollbar-thumb { background: #334155; border-radius: 99px; }
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg-deep); }
+::-webkit-scrollbar-thumb { background: #2D2A3E; border-radius: 99px; }
 
-/* ── Subtle dot grid background ── */
+/* ──────────────────────────────────────────────────
+   VISUO BACKGROUND — radial purple glow (replaces dot grid)
+   ────────────────────────────────────────────────── */
+/* Neutral dark background for dashboard & inner pages */
+.visuo-bg,
 .grid-bg {
     position: fixed;
     inset: 0;
     z-index: 0;
     pointer-events: none;
-    background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
-    background-size: 28px 28px;
-    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+    background-color: var(--bg-deep);
+    background-image:
+        radial-gradient(ellipse 60% 40% at 50% 0%,   rgba(115,94,239,0.12) 0%, transparent 65%),
+        radial-gradient(ellipse 35% 25% at 85% 85%,  rgba(77,124,255,0.07)  0%, transparent 60%);
 }
 
-/* ── Extra keyframes ── */
-@keyframes pulse-border {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(248,113,113,0.2); }
-    50% { box-shadow: 0 0 0 4px rgba(248,113,113,0.1); }
-}
-@keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-}
-@keyframes scan {
-    0% { top: 0; }
-    100% { top: 100%; }
-}
+/* ──────────────────────────────────────────────────
+   VISUO COMPONENTS
+   ────────────────────────────────────────────────── */
 
-.animate-scan { animation: scan 3s linear infinite; }
-.animate-scan-fast { animation: scan 2s linear infinite; }
-.animate-pulse-border { animation: pulse-border 1.5s infinite; }
-.animate-blink { animation: blink 0.8s infinite; }
-
-/* Kept for backward compat — no decorative glow */
-.neon-cyan { /* intentionally blank */ }
-.neon-green { /* intentionally blank */ }
-.neon-amber { /* intentionally blank */ }
-.neon-red { /* intentionally blank */ }
-.neon-violet { /* intentionally blank */ }
-
-/* ── Text helpers ── */
-.grad-text { color: var(--accent-cyan); }
-.grad-text-cyan { color: #38bdf8; }
-
-/* ── Gradient divider ── */
-.g-divider {
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(56,189,248,0.2), transparent);
+/* Hero pill badge */
+.visuo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 20px;
+    border-radius: 9999px;
+    border: 0.8px solid rgba(255, 255, 255, 0.28);
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: var(--text-secondary);
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(4px);
 }
 
-/* ── Glow blob ── */
-.glow-blob {
+/* Standard card (24px radius) */
+.visuo-card {
+    background: var(--bg-card);
+    border: 0.8px solid var(--border);
+    border-radius: 24px;
+    overflow: hidden;
+}
+
+/* Inner card / dashboard element */
+.visuo-card-inner {
+    background: var(--bg-inner);
+    border: 0.8px solid var(--border-subtle);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+/* Primary button (white pill) */
+.visuo-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 32px;
+    border-radius: 9999px;
+    background: #FFFFFF;
+    color: #02071A;
+    font-weight: 600;
+    font-size: 0.95rem;
+    font-family: 'Inter', sans-serif;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.2s ease, transform 0.15s ease;
+    text-decoration: none;
+}
+.visuo-btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+
+/* Ghost button (pill, white border) */
+.visuo-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 28px;
+    border-radius: 9999px;
+    background: transparent;
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 0.9rem;
+    font-family: 'Inter', sans-serif;
+    border: 0.8px solid var(--border);
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+    text-decoration: none;
+}
+.visuo-btn-ghost:hover { border-color: rgba(255,255,255,0.35); background: rgba(255,255,255,0.04); }
+
+/* Purple accent ghost (for section badges like "Our workflow") */
+.visuo-section-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 22px;
+    border-radius: 9999px;
+    border: 0.8px solid rgba(115,94,239,0.45);
+    color: var(--accent-purple);
+    font-size: 0.82rem;
+    font-weight: 500;
+    background: rgba(115,94,239,0.06);
+}
+
+/* Glow blob for accent sections */
+.visuo-glow {
     position: absolute;
     border-radius: 50%;
-    filter: blur(100px);
+    filter: blur(120px);
     pointer-events: none;
     z-index: 0;
 }
 
 /* ── Input field ── */
 .input-field {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--border);
+    background: var(--bg-inner);
+    border: 0.8px solid var(--border);
     border-radius: 12px;
-    padding: 12px 16px;
-    color: #f1f5f9;
-    font-family: 'Outfit', sans-serif;
+    padding: 13px 18px;
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
     font-size: 0.95rem;
     outline: none;
     transition: border-color 0.2s;
     width: 100%;
 }
-.input-field::placeholder { color: #475569; }
-.input-field:focus { border-color: var(--accent-cyan); }
+.input-field::placeholder { color: var(--text-muted); }
+.input-field:focus { border-color: var(--accent-purple); }
 
 select option {
-    background-color: #0f172a;
-    color: #f8fafc;
+    background-color: var(--bg-inner);
+    color: var(--text-primary);
 }
 
-
-/* ── Traffic lights — subtle functional glow kept ── */
-.tl-light-active-red { background: #f87171; box-shadow: 0 0 8px rgba(248,113,113,0.5); }
-.tl-light-active-amber { background: #fbbf24; box-shadow: 0 0 8px rgba(251,191,36,0.5); }
-.tl-light-active-green { background: #4ade80; box-shadow: 0 0 8px rgba(74,222,128,0.5); }
+/* ── Traffic lights — functional glow ── */
+.tl-light-active-red    { background: #f87171; box-shadow: 0 0 8px rgba(248,113,113,0.5); }
+.tl-light-active-amber  { background: #fbbf24; box-shadow: 0 0 8px rgba(251,191,36,0.5); }
+.tl-light-active-green  { background: #4ade80; box-shadow: 0 0 8px rgba(74,222,128,0.5); }
 
 /* ── Progress fill ── */
-.progress-fill-cyan { background: #38bdf8; }
-.progress-fill-green { background: #4ade80; }
-.progress-fill-amber { background: #fbbf24; }
-.progress-fill-red { background: #f87171; }
-
-/* ── Formula ── */
-.formula-box {
-    background: rgba(56,189,248,0.04);
-    border: 1px solid rgba(56,189,248,0.12);
-    border-radius: 12px;
-    padding: 24px;
-    text-align: center;
-}
+.progress-fill-cyan   { background: #67e8f9; }
+.progress-fill-green  { background: #4ade80; }
+.progress-fill-amber  { background: #fbbf24; }
+.progress-fill-red    { background: #f87171; }
 
 /* ── Corridor node ── */
-.cnode-active { background: rgba(74,222,128,0.06); border-color: rgba(74,222,128,0.18); }
-.cnode-preparing { background: rgba(251,191,36,0.06); border-color: rgba(251,191,36,0.18); }
-.cnode-pending { background: rgba(56,189,248,0.03); border-color: rgba(56,189,248,0.10); }
+.cnode-active    { background: rgba(74,222,128,0.06);  border-color: rgba(74,222,128,0.18); }
+.cnode-preparing { background: rgba(251,191,36,0.06);  border-color: rgba(251,191,36,0.18); }
+.cnode-pending   { background: rgba(103,232,249,0.03); border-color: rgba(103,232,249,0.10); }
 
 /* ── Toast ── */
 .toast {
@@ -132,23 +205,22 @@ select option {
     display: flex;
     align-items: center;
     gap: 12px;
-    background: #111827;
-    border: 1px solid rgba(248,113,113,0.3);
-    border-radius: 12px;
+    background: var(--bg-card);
+    border: 0.8px solid var(--border);
+    border-radius: 16px;
     padding: 14px 18px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5);
     transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
     transform: translateX(120%);
     min-width: 320px;
 }
 .toast.show { transform: translateX(0); }
 
-/* ── Camera frame ── */
+/* ── Camera detect overlay ── */
 .cam-detect-box {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
     border: 1.5px solid var(--accent-cyan);
     border-radius: 3px;
     padding: 2px 6px;
@@ -156,3 +228,56 @@ select option {
     color: var(--accent-cyan);
     white-space: nowrap;
 }
+
+/* ── Formula box ── */
+.formula-box {
+    background: rgba(115,94,239,0.04);
+    border: 0.8px solid rgba(115,94,239,0.2);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+}
+
+/* ── Text helpers ── */
+.grad-text       { color: var(--accent-purple); }
+.grad-text-cyan  { color: var(--accent-cyan); }
+.g-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(115,94,239,0.25), transparent);
+}
+
+/* ── Legacy compat (empty, kept for backward compatibility) ── */
+.neon-cyan    { } /* intentionally blank */
+.neon-green   { } /* intentionally blank */
+.neon-amber   { } /* intentionally blank */
+.neon-red     { } /* intentionally blank */
+.neon-violet  { } /* intentionally blank */
+.glow-blob { position:absolute; border-radius:50%; filter:blur(100px); pointer-events:none; z-index:0; }
+
+/* ── Keyframes ── */
+@keyframes pulse-border {
+    0%,100% { box-shadow: 0 0 0 0 rgba(115,94,239,0.25); }
+    50%      { box-shadow: 0 0 0 4px rgba(115,94,239,0.1); }
+}
+@keyframes blink {
+    0%,100% { opacity: 1; }
+    50%      { opacity: 0.3; }
+}
+@keyframes scan {
+    0%   { top: 0; }
+    100% { top: 100%; }
+}
+@keyframes shimmer {
+    0%   { left: -100%; }
+    100% { left: 200%; }
+}
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-scan         { animation: scan 3s linear infinite; }
+.animate-scan-fast    { animation: scan 2s linear infinite; }
+.animate-pulse-border { animation: pulse-border 1.5s infinite; }
+.animate-blink        { animation: blink 0.8s infinite; }
+.animate-fade-in-up   { animation: fadeInUp 0.6s ease both; }

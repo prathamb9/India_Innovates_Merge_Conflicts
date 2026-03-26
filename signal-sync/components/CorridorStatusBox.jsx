@@ -1,31 +1,31 @@
-'use client';
+﻿'use client';
 
 /**
  * CorridorStatusBox
  * Displays named intersection nodes for an active green corridor,
- * with real-time status animation: GREEN ✓ → PREP ⏱ → QUEUED
+ * with real-time status animation: GREEN -> PREP  {'->'} QUEUED
  *
  * Props:
- *   nodes        – [{ id, name }] ordered list of intersections on route
- *   activeIdx    – index of the node the ambulance is currently AT (0-based)
- *   eta          – string, e.g. "4m 12s"
- *   stops        – number of stops (always 0 for green corridor)
+ *   nodes         [{ id, name }] ordered list of intersections on route
+ *   activeIdx     index of the node the ambulance is currently AT (0-based)
+ *   eta           string, e.g. "4m 12s"
+ *   stops         number of stops (always 0 for green corridor)
  */
-export default function CorridorStatusBox({ nodes = [], activeIdx = 0, eta = '—', stops = 0 }) {
+export default function CorridorStatusBox({ nodes = [], activeIdx = 0, eta = '', stops = 0 }) {
     if (!nodes.length) return null;
 
     function getStatus(i) {
-        if (i < activeIdx) return 'done';      // passed — still GREEN
-        if (i === activeIdx) return 'active';  // currently GREEN ✓
-        if (i === activeIdx + 1) return 'prep'; // PREP ⏱
+        if (i < activeIdx) return 'done';      // passed  still GREEN
+        if (i === activeIdx) return 'active';  // currently GREEN 
+        if (i === activeIdx + 1) return 'prep'; // PREP 
         return 'queued';                        // QUEUED
     }
 
     const statusConfig = {
-        done:   { dot: '#00ff9d', badge: '#00ff9d', label: 'GREEN ✓',  bg: 'rgba(0,255,157,0.08)', border: 'rgba(0,255,157,0.2)' },
-        active: { dot: '#00ff9d', badge: '#00ff9d', label: 'GREEN ✓',  bg: 'rgba(0,255,157,0.12)', border: 'rgba(0,255,157,0.35)' },
-        prep:   { dot: '#ffb800', badge: '#ffb800', label: 'PREP ⏱',   bg: 'rgba(255,184,0,0.08)', border: 'rgba(255,184,0,0.2)' },
-        queued: { dot: '#00f5ff', badge: '#00f5ff', label: 'QUEUED',   bg: 'rgba(0,245,255,0.04)', border: 'rgba(0,245,255,0.15)' },
+        done:   { dot: '#00ff9d', badge: '#00ff9d', label: 'GREEN',  bg: 'rgba(0,255,157,0.08)', border: 'rgba(0,255,157,0.2)' },
+        active: { dot: '#00ff9d', badge: '#00ff9d', label: 'GREEN',  bg: 'rgba(0,255,157,0.12)', border: 'rgba(0,255,157,0.35)' },
+        prep:   { dot: '#ffb800', badge: '#ffb800', label: 'PREP',   bg: 'rgba(255,184,0,0.08)', border: 'rgba(255,184,0,0.2)' },
+        queued: { dot: '#00f5ff', badge: '#00f5ff', label: 'QUEUED', bg: 'rgba(0,245,255,0.04)', border: 'rgba(0,245,255,0.15)' },
     };
 
     return (
@@ -62,7 +62,7 @@ export default function CorridorStatusBox({ nodes = [], activeIdx = 0, eta = '�
 
                             {/* Node name */}
                             <span style={{ flex: 1, fontSize: '0.8rem', fontWeight: 500, color: st === 'queued' ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.85)' }}>
-                                Node {i + 1} — {node.name}
+                                Node {i + 1}  {node.name}
                             </span>
 
                             {/* Status badge */}

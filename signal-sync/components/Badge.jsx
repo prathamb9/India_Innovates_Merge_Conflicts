@@ -1,4 +1,4 @@
-// Badge — reusable colored pill
+﻿// Badge  reusable colored pill
 const variantClasses = {
     cyan: 'bg-[rgba(0,245,255,0.12)] text-accent-cyan border border-[rgba(0,245,255,0.25)]',
     green: 'bg-[rgba(0,255,157,0.12)] text-accent-green border border-[rgba(0,255,157,0.25)]',

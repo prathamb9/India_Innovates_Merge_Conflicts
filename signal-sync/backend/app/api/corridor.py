@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+﻿from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.middleware.auth import get_current_user, require_dispatcher
@@ -29,7 +29,7 @@ async def start_corridor(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_dispatcher),
 ):
-    """Activate a corridor — schedules green phases and begins tracking."""
+    """Activate a corridor  schedules green phases and begins tracking."""
     try:
         corridor = await CorridorService.start(req.corridor_id, user, db)
         return corridor
@@ -57,7 +57,7 @@ async def get_corridor(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """Fetch corridor details — any authenticated user."""
+    """Fetch corridor details  any authenticated user."""
     corridor = await CorridorService.get(corridor_id, db)
     if not corridor:
         raise HTTPException(status_code=404, detail="Corridor not found")
