@@ -74,9 +74,22 @@ function SignalPole({ active }) {
 
 /* -- Per-direction camera panel -------------------------------- */
 function DirectionPanel({ direction, signalState }) {
-    const [streamOk, setStreamOk] = useState(true);
+    const [streamOk, setStreamOk] = useState(false);   // default to video fallback
     const [dirStats, setDirStats] = useState(null);
     const streamUrl = `${STREAM_BASE}/video_feed/${direction.id}`;
+
+    // Probe backend on mount — only switch to live stream if actually reachable
+    useEffect(() => {
+        let cancelled = false;
+        const probe = async () => {
+            try {
+                const res = await fetch(`${STREAM_BASE}/stats/${direction.id}`, { signal: AbortSignal.timeout(2000) });
+                if (!cancelled && res.ok) setStreamOk(true);
+            } catch (_) { /* backend down — keep video fallback */ }
+        };
+        probe();
+        return () => { cancelled = true; };
+    }, [direction.id]);
 
     // Poll per-direction stats from the edge AI
     useEffect(() => {
@@ -131,8 +144,11 @@ function DirectionPanel({ direction, signalState }) {
                     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                     onError={() => setStreamOk(false)} />
             ) : (
-                <video src="/demo.mp4" autoPlay loop muted playsInline
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <video
+                    src={`/cam-${direction.id.toLowerCase()}.mp4`}
+                    autoPlay loop muted playsInline
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
             )}
 
             {/* Traffic status banner — center bottom */}

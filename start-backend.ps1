@@ -37,7 +37,7 @@ Start-Sleep -Seconds 2
 # ── 3. Edge AI MJPEG Video Streamer ──────────────────────
 Write-Host "[3/4] Starting YOLO MJPEG Streamer on http://localhost:8001 ..." -ForegroundColor Yellow
 $edgeDir = Join-Path $Root "edge-sim"
-Start-Process "cmd.exe" -ArgumentList "/k cd /d `"$edgeDir`" && python streamer.py --video demo.mp4 --port 8001" -WindowStyle Normal
+Start-Process "cmd.exe" -ArgumentList "/k cd /d `"$edgeDir`" && python streamer.py --video-north demo.mp4 --video-south `"WhatsApp Video 1.mp4`" --video-east `"WhatsApp Video 2.mp4`" --video-west `"WhatsApp Video 3.mp4`" --port 8001" -WindowStyle Normal
 
 Start-Sleep -Seconds 2
 

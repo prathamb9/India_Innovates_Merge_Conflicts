@@ -36,12 +36,12 @@ TARGET_FPS    = 20
 BUFFER_SECS   = 3.5                          # pre-process 3.5 s before playing
 BUFFER_FRAMES = int(BUFFER_SECS * TARGET_FPS)  #  70 frames
 
-# 4 directions  each reads from a different 25% slice of demo.mp4
+# 4 directions — each reads from its own video file
 DIRECTIONS = [
-    {"id": "NORTH", "offset_pct": 0.00, "axis": "ns"},
-    {"id": "SOUTH", "offset_pct": 0.25, "axis": "ns"},
-    {"id": "EAST",  "offset_pct": 0.50, "axis": "ew"},
-    {"id": "WEST",  "offset_pct": 0.75, "axis": "ew"},
+    {"id": "NORTH", "axis": "ns"},
+    {"id": "SOUTH", "axis": "ns"},
+    {"id": "EAST",  "axis": "ew"},
+    {"id": "WEST",  "axis": "ew"},
 ]
 
 # Legacy node list (for Firebase stats push compatibility)
@@ -98,7 +98,6 @@ class DirectionPipeline:
     def __init__(self, direction: dict, video_path: str):
         self.id         = direction["id"]
         self.axis       = direction["axis"]
-        self.offset_pct = direction["offset_pct"]
         self.video_path = video_path
 
         # Two deques  one playing, one being filled
@@ -170,10 +169,10 @@ class DirectionPipeline:
         Background thread: reads video, runs YOLO every 4th frame,
         fills BUFFER_FRAMES into _next_buf, then swaps with _play_buf.
         """
-        cap   = cv2.VideoCapture(self.video_path)
-        total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) or 1
-        start = int(total * self.offset_pct)
-        cap.set(cv2.CAP_PROP_POS_FRAMES, start)
+        cap = cv2.VideoCapture(self.video_path)
+        if not cap.isOpened():
+            print(f"[ERROR] Cannot open video: {self.video_path}")
+            return
 
         frame_idx    = 0
         cached_boxes = []
@@ -322,7 +321,7 @@ def _signal_controller():
         alternating the green_axis on each full cycle.
     """
     FIXED_GREEN  = 20
-    FIXED_YELLOW = 5
+    FIXED_YELLOW = 3
     FIXED_RED    = 15
 
     fixed_phase     = "green"
@@ -509,10 +508,22 @@ def health():
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="SignalSync 4-Direction YOLO Streamer")
-    parser.add_argument("--video",       default="demo.mp4",  help="Path to demo video file")
+    parser.add_argument("--video",       default="demo.mp4",  help="Fallback video for all directions")
+    parser.add_argument("--video-north", default=None,        help="Video file for NORTH cam")
+    parser.add_argument("--video-south", default=None,        help="Video file for SOUTH cam")
+    parser.add_argument("--video-east",  default=None,        help="Video file for EAST cam")
+    parser.add_argument("--video-west",  default=None,        help="Video file for WEST cam")
     parser.add_argument("--port",        default=8001, type=int)
     parser.add_argument("--no-firebase", action="store_true", help="Skip Firebase push")
     args = parser.parse_args()
+
+    # Map each direction to its video file (fallback to --video if not specified)
+    DIR_VIDEOS = {
+        "NORTH": args.video_north or args.video,
+        "SOUTH": args.video_south or args.video,
+        "EAST":  args.video_east  or args.video,
+        "WEST":  args.video_west  or args.video,
+    }
 
     use_firebase = not args.no_firebase
     fb_module    = None
@@ -526,7 +537,8 @@ if __name__ == "__main__":
             print(f"[WARNING] Could not load firebase_client: {e}")
             use_firebase = False
 
-    print(f"\n[Streamer] Video source: {args.video}")
+    for d_id, vpath in DIR_VIDEOS.items():
+        print(f"[Streamer] {d_id} => {vpath}")
     print(f"[Streamer] Buffer: {BUFFER_SECS}s ({BUFFER_FRAMES} frames) per direction")
     print(f"[Streamer] Firebase: {'enabled' if use_firebase else 'disabled'}\n")
 
@@ -534,10 +546,10 @@ if __name__ == "__main__":
     model = get_model()
 
     # Create and start all 4 direction pipelines
-    # We start all pipeline threads first, then wait for first buffers
     pipeline_threads = []
     for direction in DIRECTIONS:
-        pipe = DirectionPipeline(direction, args.video)
+        video_path = DIR_VIDEOS[direction["id"]]
+        pipe = DirectionPipeline(direction, video_path)
         _pipelines[direction["id"]] = pipe
 
         # Spawn the pipeline background thread

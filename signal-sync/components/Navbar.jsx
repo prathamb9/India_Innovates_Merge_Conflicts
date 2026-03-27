@@ -41,11 +41,12 @@ export default function Navbar() {
             transition: 'background 0.3s ease',
             fontFamily: 'Inter, sans-serif',
         }}>
-            {/* Logo */}
-            <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: '#fff', fontWeight: 600, fontSize: '1.1rem' }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #735EEF, #4D7CFF)', flexShrink: 0 }} />
-                <span><span style={{ color: '#735EEF' }}>Signal</span>Sync</span>
-            </Link>
+            <div className="flex items-center gap-10">
+                <Link href="/" className="flex items-center gap-2.5 font-bold text-xl tracking-tight no-underline group">
+                    <img src="/logo.png" alt="SignalSync Logo" style={{ width: 32, height: 32, objectFit: 'contain' }} className="rounded-lg group-hover:scale-105 transition-transform" />
+                    <span className="text-white"><span style={{ color: '#735EEF' }}>Signal</span>Sync</span>
+                </Link>
+            </div>
 
             {/* Nav links */}
             <ul style={{ display: 'flex', alignItems: 'center', gap: 4, listStyle: 'none', margin: 0, padding: 0 }}>

@@ -462,8 +462,8 @@ export default function PortalPage() {
             {/* -- Nav -- */}
             <nav className="relative z-10 flex items-center justify-between px-10 py-3.5 bg-bg-deep/95 border-b border-white/5 backdrop-blur-xl">
                 <Link href="/" className="flex items-center gap-2.5 font-extrabold text-xl no-underline text-white">
-                    <div className="w-8 h-8 rounded-[6px] bg-[#0c3547] border border-cyan-500/30 flex items-center justify-center text-cyan-400"></div>
-                    <span><span className="text-cyan-400">Signal</span>Sync</span>
+                    <img src="/logo.png" alt="SignalSync Logo" className="w-8 h-8 rounded-[6px] object-contain" />
+                    <span><span style={{ color: '#735EEF' }}>Signal</span>Sync</span>
                 </Link>
                 <div className="flex items-center gap-2.5">
                     {user ? (
@@ -481,7 +481,7 @@ export default function PortalPage() {
                     {isAdmin && <Link href="/admin" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[24px] text-xs font-semibold bg-accent-red/15 border border-accent-red/30 text-accent-red no-underline">{t('adminLink')}</Link>}
                     {user
                         ? <button onClick={logout} className="px-3 py-1.5 rounded-[24px] text-xs font-semibold bg-[rgba(255,59,92,0.15)] text-accent-red border border-accent-red/30 font-sans cursor-pointer">{t('logoutLink')}</button>
-                        : <Link href="/auth/login" className="px-3 py-1.5 rounded-[24px] text-xs font-semibold bg-accent-cyan/10 border border-accent-cyan/30 text-accent-cyan no-underline">{t('signIn')}</Link>
+                        : <Link href="/auth/login" className="px-3 py-1.5 rounded-[24px] text-xs font-semibold bg-accent-violet/10 border border-accent-violet/30 text-accent-violet no-underline">{t('signIn')}</Link>
                     }
                 </div>
             </nav>
@@ -495,7 +495,7 @@ export default function PortalPage() {
                         <div className="flex flex-wrap gap-2">
                             {CITIES.map(c => (
                                 <button key={c.name} onClick={() => { setCity(c.name); resetRoute(); }}
-                                    className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all font-sans cursor-pointer ${city === c.name ? 'bg-accent-cyan/15 border border-accent-cyan/40 text-accent-cyan' : 'bg-white/[0.03] border border-white/5 text-text-secondary hover:border-accent-cyan/20'}`}>
+                                    className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all font-sans cursor-pointer ${city === c.name ? 'bg-accent-violet/15 border border-accent-violet/40 text-accent-violet' : 'bg-white/[0.03] border border-white/5 text-text-secondary hover:border-accent-violet/20'}`}>
                                     {c.name}
                                 </button>
                             ))}
@@ -561,7 +561,7 @@ export default function PortalPage() {
                                 ) : <div className="flex flex-col gap-1.5"><label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">{t('destination')}</label><input disabled className="input-field opacity-50" placeholder="Loading Google Maps..." /></div>}
 
                                 <button onClick={calcRoute} disabled={calculating || !canCalc}
-                                    className="w-full py-3 rounded-[24px] font-bold bg-cyan-500 hover:bg-cyan-400 text-white disabled:opacity-50 transition-all font-sans cursor-pointer">
+                                    className="w-full py-3 rounded-[24px] font-bold bg-violet-500 hover:bg-violet-400 text-white disabled:opacity-50 transition-all font-sans cursor-pointer">
                                     {calculating ? t('routing') : t('getBestRoute')}
                                 </button>
                             </div>
@@ -584,7 +584,7 @@ export default function PortalPage() {
                                                 <div className="flex gap-2">
                                                     {[['ambulance', t('ambulanceLabel')], ['fire', t('fireTruckLabel')], ['vvip', t('vvipLabel')]].map(([v, l]) => (
                                                         <button key={v} onClick={() => setCorridorType(v)}
-                                                            className={`flex-1 py-2 rounded-[24px] border text-sm transition-all font-sans cursor-pointer ${corridorType === v ? 'bg-accent-cyan/10 border-accent-cyan/35 text-accent-cyan' : 'bg-white/[0.03] border-white/5 text-text-secondary hover:border-accent-cyan/25'}`}>
+                                                            className={`flex-1 py-2 rounded-[24px] border text-sm transition-all font-sans cursor-pointer ${corridorType === v ? 'bg-accent-violet/10 border-accent-violet/35 text-accent-violet' : 'bg-white/[0.03] border-white/5 text-text-secondary hover:border-accent-violet/25'}`}>
                                                             {l}
                                                         </button>
                                                     ))}
@@ -663,7 +663,7 @@ export default function PortalPage() {
 
                                                 {!corridorActive ? (
                                                     <button onClick={initiateWave} disabled={creating}
-                                                        className="w-full py-4 rounded-[24px] font-bold text-base bg-emerald-500 hover:bg-emerald-400 text-white disabled:opacity-60 transition-all font-sans cursor-pointer">
+                                                        className="w-full py-4 rounded-[24px] font-bold text-base bg-violet-500 hover:bg-violet-400 text-white disabled:opacity-60 transition-all font-sans cursor-pointer">
                                                         {creating ? t('activating') : t('initiateWave')}
                                                     </button>
                                                 ) : (
@@ -671,11 +671,11 @@ export default function PortalPage() {
                                                         <div className="flex items-center gap-2">
                                                             <span className="w-2.5 h-2.5 rounded-full bg-accent-green animate-pulse" />
                                                             <span className="text-sm font-bold text-accent-green">{t('greenWaveActive')}</span>
-                                                            <span className="ml-auto text-xs font-mono text-accent-cyan">{etaStr}</span>
+                                                            <span className="ml-auto text-xs font-mono text-accent-violet">{etaStr}</span>
                                                         </div>
                                                         {routeInfo && (
-                                                            <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-[24px] p-3 text-center">
-                                                                <div className="text-base font-extrabold text-emerald-400 mb-0.5">
+                                                            <div className="bg-violet-500/5 border border-violet-500/20 rounded-[24px] p-3 text-center">
+                                                                <div className="text-base font-extrabold text-violet-400 mb-0.5">
                                                                      {t('savingMinutes', Math.round((routeInfo.durationSec || 0) * 0.4 / 60))}
                                                                 </div>
                                                                 <div className="text-xs text-text-muted">{t('priorityCleared')}</div>
@@ -687,7 +687,7 @@ export default function PortalPage() {
                                                         {/* Navigation starts here  physically travelling */}
                                                         {!navigationMode ? (
                                                             <button onClick={startNavigation}
-                                                                className="w-full py-3 rounded-[24px] font-bold bg-cyan-600 hover:bg-cyan-500 text-white transition-all font-sans cursor-pointer flex items-center justify-center gap-2">
+                                                                className="w-full py-3 rounded-[24px] font-bold bg-violet-600 hover:bg-violet-500 text-white transition-all font-sans cursor-pointer flex items-center justify-center gap-2">
                                                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" /></svg>
                                                                 {t('startGPS')}
                                                             </button>
@@ -795,10 +795,10 @@ export default function PortalPage() {
                                         const cNodes = c.corridorNodes || [];
                                         const cActiveIdx = corridorActive && c.originName === originName ? activeNodeIdx : 0;
                                         return (
-                                            <div key={c.id} className="bg-accent-cyan/[0.03] border border-accent-cyan/20 rounded-[24px] p-4">
+                                            <div key={c.id} className="bg-accent-violet/[0.03] border border-accent-violet/20 rounded-[24px] p-4">
                                                 <div className="flex justify-between items-start mb-2">
                                                     <div className="flex items-center gap-2 flex-wrap">
-                                                        <span className="w-2 h-2 rounded-full bg-accent-cyan animate-pulse flex-shrink-0" />
+                                                        <span className="w-2 h-2 rounded-full bg-accent-violet animate-pulse flex-shrink-0" />
                                                         <Badge variant="red">{c.vehicleNumber}</Badge>
                                                         <span className="text-[0.65rem] text-text-muted capitalize border border-white/10 rounded-full px-2 py-0.5">{c.vehicleType}</span>
                                                     </div>
@@ -819,7 +819,7 @@ export default function PortalPage() {
                                                 )}
                                                 <div className="flex items-center gap-3 mt-2">
                                                     <span className="text-[0.65rem] text-text-muted">{t('byLabel')} {c.creatorName}</span>
-                                                    {c.distanceText && <span className="text-[0.65rem] text-accent-cyan font-mono">{c.distanceText}</span>}
+                                                    {c.distanceText && <span className="text-[0.65rem] text-accent-violet font-mono">{c.distanceText}</span>}
                                                     {c.durationText && <span className="text-[0.65rem] text-accent-amber font-mono">{c.durationText}</span>}
                                                 </div>
                                             </div>
@@ -835,3 +835,4 @@ export default function PortalPage() {
         </div>
     );
 }
+

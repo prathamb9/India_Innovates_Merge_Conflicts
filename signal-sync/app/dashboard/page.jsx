@@ -332,7 +332,7 @@ function NodesSection({ nodes, onSelectNode, selectedNode, selectedCity, t }) {
                     <div className="flex items-center justify-between px-7 py-4 flex-shrink-0"
                         style={{ borderBottom: '0.8px solid rgba(255,255,255,0.08)', background: 'rgba(18,17,22,0.90)' }}>
                         <div className="flex items-center gap-3">
-                            <div style={{ width: 28, height: 28, borderRadius: 7, background: 'linear-gradient(135deg, #735EEF, #4D7CFF)', flexShrink: 0 }} />
+                            <img src="/logo.png" alt="SignalSync Logo" style={{ width: 28, height: 28, flexShrink: 0, objectFit: 'contain' }} className="rounded" />
                             <span className="font-semibold text-base" style={{ fontFamily: 'Inter, sans-serif' }}>
                                 <span style={{ color: '#735EEF' }}>Signal</span>Sync
                             </span>
@@ -516,7 +516,7 @@ export default function DashboardPage() {
                 {/* Visuo nav */}
                 <header className="relative z-10 flex items-center justify-between px-8 py-4" style={{ backdropFilter: 'blur(12px)', borderBottom: '0.8px solid rgba(255,255,255,0.08)', background: 'rgba(18,17,22,0.85)' }}>
                     <Link href="/" className="flex items-center gap-2.5 font-semibold text-lg no-underline text-white">
-                        <div style={{ width: 30, height: 30, borderRadius: 8, background: 'linear-gradient(135deg, #735EEF, #4D7CFF)', flexShrink: 0 }} />
+                        <img src="/logo.png" alt="SignalSync Logo" style={{ width: 30, height: 30, flexShrink: 0, objectFit: 'contain' }} className="rounded" />
                         <span><span style={{ color: '#735EEF' }}>Signal</span>Sync</span>
                     </Link>
                     <div className="flex items-center gap-2">
@@ -560,7 +560,7 @@ export default function DashboardPage() {
             <header className="relative z-10 flex items-center justify-between px-6 py-3.5 flex-shrink-0" style={{ backdropFilter: 'blur(12px)', borderBottom: '0.8px solid rgba(255,255,255,0.08)', background: 'rgba(18,17,22,0.90)' }}>
                 <div className="flex items-center gap-3">
                     <Link href="/" className="flex items-center gap-2 font-semibold text-base no-underline text-white" style={{ fontFamily: 'Inter, sans-serif' }}>
-                        <div style={{ width: 28, height: 28, borderRadius: 7, background: 'linear-gradient(135deg, #735EEF, #4D7CFF)', flexShrink: 0 }} />
+                        <img src="/logo.png" alt="SignalSync Logo" style={{ width: 28, height: 28, flexShrink: 0, objectFit: 'contain' }} className="rounded" />
                         <span><span style={{ color: '#735EEF' }}>Signal</span>Sync</span>
                     </Link>
                     <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.1)' }} />
@@ -688,47 +688,6 @@ export default function DashboardPage() {
                         </div>
                     </div>
 
-                    {/* Lane density */}
-                    <div className="bg-bg-card border border-white/5 rounded-2xl p-5">
-                        <div className="text-[0.65rem] font-bold uppercase tracking-widest text-text-muted mb-4"> {t('laneDensity')}  {selectedCity}</div>
-                        <div className="flex flex-col gap-3">
-                            {cityLanes.map((label, i) => {
-                                const d = nodes[i * 4]?.density ?? 50;
-                                const c = d < 40 ? 'progress-fill-green' : d < 70 ? 'progress-fill-amber' : 'progress-fill-red';
-                                const tc = d < 40 ? 'text-accent-green' : d < 70 ? 'text-accent-amber' : 'text-accent-red';
-                                return (
-                                    <div key={label} className="flex items-center gap-2.5 text-xs text-text-secondary">
-                                        <span className="w-[90px] flex-shrink-0 truncate">{label}</span>
-                                        <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                                            <div className={`h-full rounded-full ${c} transition-all duration-700`} style={{ width: `${d}%` }} />
-                                        </div>
-                                        <span className={`w-8 text-right font-bold font-mono text-xs ${tc}`}>{d}%</span>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    {/* City stats */}
-                    <div className="bg-bg-card border border-white/5 rounded-2xl p-5">
-                        <div className="text-[0.65rem] font-bold uppercase tracking-widest text-text-muted mb-4"> {t('cityStats')}</div>
-                        <div className="grid grid-cols-2 gap-3">
-                            {[[t('avgWait'), '8.3s', 'text-text-primary'], [t('co2Saved'), '2.4 t', 'text-accent-green'], [t('fuelSaved'), '1,840L', 'text-accent-green'], [t('congestion'), `${avgDensity}%`, avgDensity > 70 ? 'text-accent-red' : 'text-accent-amber']].map(([l, v, c]) => (
-                                <div key={l} className="bg-white/[0.02] border border-white/5 rounded-xl p-3">
-                                    <div className="text-[0.6rem] text-text-muted mb-1">{l}</div>
-                                    <div className={`text-base font-bold font-mono ${c}`}>{v}</div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="bg-bg-card border border-white/5 rounded-2xl p-5">
-                        <div className="text-[0.65rem] font-bold uppercase tracking-widest text-text-muted mb-4"> {t('actions')}</div>
-                        <Link href="/portal" className="flex items-center justify-center gap-2 px-3 py-3 rounded-xl text-sm font-bold bg-accent-cyan text-black no-underline hover:shadow-[0_0_20px_rgba(0,245,255,0.4)] transition-all">
-                            {t('newGreenCorridor')}
-                        </Link>
-                    </div>
                 </div>
             </main>
         </div>

@@ -391,7 +391,7 @@ function FaqSection() {
         <section id="faq" className="relative z-10 py-24">
             <div className="max-w-[1200px] mx-auto px-10">
                 <div className="flex items-center gap-2 mb-4 text-accent-cyan text-xs font-bold uppercase tracking-widest"><span className="w-5 h-0.5 bg-accent-cyan rounded-full" />{t('faqLabel')}</div>
-                <h2 className="text-4xl font-extrabold tracking-tight mb-3">{t('faqTitle')} <span className="grad-text">{t('faqTitle').split(' ').slice(-1)[0]}</span></h2>
+                <h2 className="text-4xl font-extrabold tracking-tight mb-3">{t('faqTitle').split(' ').slice(0, -1).join(' ')} <span className="grad-text">{t('faqTitle').split(' ').slice(-1)[0]}</span></h2>
                 <p className="text-text-secondary mb-12 max-w-xl">{t('faqDesc')}</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                     {FAQS.map((faq, i) => (
@@ -566,7 +566,7 @@ export default function HomePage() {
                     {/* Brand */}
                     <div className="md:col-span-1">
                         <Link href="/" className="flex items-center gap-2.5 font-semibold text-lg no-underline text-white mb-3" style={{ fontFamily: 'Inter, sans-serif' }}>
-                            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #735EEF, #4D7CFF)' }} />
+                            <img src="/logo.png" alt="SignalSync Logo" className="w-8 h-8 rounded-lg object-contain" />
                             <span><span style={{ color: '#735EEF' }}>Signal</span>Sync</span>
                         </Link>
                         <p className="text-text-muted text-xs leading-relaxed mb-4">{t('footerDesc')}</p>
