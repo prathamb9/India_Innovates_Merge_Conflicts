@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
     useJsApiLoader,
@@ -200,6 +200,79 @@ function densifyPath(path, maxDistanceMeters = 20) {
     return dense;
 }
 
+// --- Map Fallback (billing error / no API key) --------------------------------
+function MapFallback({ corridorNodeMarkers = [], corridorActive, originName, destName }) {
+    const statusColors = {
+        active: '#00ff9d',
+        prep: '#ffb800',
+        queued: '#ff3b5c',
+        done: '#00ff9d66',
+    };
+    return (
+        <div style={{ height: '420px', background: '#050c18', borderRadius: '12px', border: '1px solid rgba(0,245,255,0.12)', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            {/* Grid background */}
+            <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(0,245,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,245,255,0.04) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+
+            {/* Header */}
+            <div style={{ position: 'relative', zIndex: 2, padding: '14px 16px 10px', borderBottom: '1px solid rgba(0,245,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: '1rem' }}>🗺️</span>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Map View</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,184,0,0.1)', border: '1px solid rgba(255,184,0,0.25)', borderRadius: '999px', padding: '3px 10px' }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ffb800', display: 'inline-block' }} />
+                    <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#ffb800', letterSpacing: '0.06em' }}>BILLING NOT ENABLED</span>
+                </div>
+            </div>
+
+            {/* Route info */}
+            {(originName || destName) && (
+                <div style={{ position: 'relative', zIndex: 2, padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.75rem', color: '#64748b' }}>
+                    {originName && <span style={{ color: '#00f5ff', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>🔵 {originName}</span>}
+                    {originName && destName && <span style={{ color: '#334155' }}>→</span>}
+                    {destName && <span style={{ color: '#a78bfa', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>🟣 {destName}</span>}
+                </div>
+            )}
+
+            {/* Signal nodes grid */}
+            <div style={{ position: 'relative', zIndex: 2, flex: 1, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {corridorNodeMarkers.length === 0 ? (
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, color: '#334155', textAlign: 'center' }}>
+                        <div style={{ fontSize: '3rem', opacity: 0.3 }}>🛣️</div>
+                        <div style={{ fontSize: '0.8rem', fontWeight: 600 }}>No route plotted yet</div>
+                        <div style={{ fontSize: '0.7rem', maxWidth: 240, lineHeight: 1.5 }}>
+                            Select origin &amp; destination, then click <strong style={{ color: '#a78bfa' }}>Get Best Route</strong>.<br />
+                            Signal nodes will appear here.
+                        </div>
+                    </div>
+                ) : (
+                    <>
+                        <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#475569', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4 }}>
+                            Signal Corridor — {corridorNodeMarkers.length} Intersections
+                        </div>
+                        {corridorNodeMarkers.map((node, i) => {
+                            const color = statusColors[node.status] || statusColors.queued;
+                            const label = node.status === 'active' ? '🟢 GREEN' : node.status === 'prep' ? '🟡 PREP' : node.status === 'done' ? '✅ CLEAR' : '🔴 RED';
+                            return (
+                                <div key={node.id || i} style={{ display: 'flex', alignItems: 'center', gap: 10, background: `${color}08`, border: `1px solid ${color}22`, borderRadius: 10, padding: '7px 12px' }}>
+                                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0, boxShadow: node.status === 'active' ? `0 0 8px ${color}` : 'none' }} />
+                                    <span style={{ fontSize: '0.78rem', fontWeight: 600, color: '#cbd5e1', flex: 1 }}>{node.name || node.id}</span>
+                                    <span style={{ fontSize: '0.6rem', fontWeight: 700, color, letterSpacing: '0.05em' }}>{label}</span>
+                                </div>
+                            );
+                        })}
+                    </>
+                )}
+            </div>
+
+            {/* Bottom hint */}
+            <div style={{ position: 'relative', zIndex: 2, padding: '8px 16px', borderTop: '1px solid rgba(255,255,255,0.04)', fontSize: '0.65rem', color: '#334155', textAlign: 'center' }}>
+                Enable billing on <strong style={{ color: '#64748b' }}>Google Cloud Console</strong> to activate the live map — corridors still work normally
+            </div>
+        </div>
+    );
+}
+
 // --- Main Component -----------------------------------------------------------
 //   showCorridor         bool
 //   corridorActive       bool
@@ -240,6 +313,18 @@ export default function DelhiMap({
         googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
         libraries: MAPS_LIBRARIES,
     });
+
+    const [billingError, setBillingError] = useState(false);
+
+    // Detect BillingNotEnabledMapError from the Google Maps global error handler
+    useEffect(() => {
+        const originalError = window.gm_authFailure;
+        window.gm_authFailure = () => {
+            setBillingError(true);
+            if (originalError) originalError();
+        };
+        return () => { window.gm_authFailure = originalError; };
+    }, []);
 
     const [directions, setDirections] = useState(null);
     const [routePath, setRoutePath] = useState([]);
@@ -340,14 +425,21 @@ export default function DelhiMap({
         );
     }, [isLoaded, showCorridor, originLatLng?.lat, originLatLng?.lng, destLatLng?.lat, destLatLng?.lng]);
 
-    if (loadError) return (
-        <div style={{ height: '420px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#050c18', borderRadius: '12px', color: '#ff3b5c', fontSize: '0.9rem', padding: '1rem', textAlign: 'center' }}>
-            Google Maps failed to load. Check API key &amp; enable Maps JS API + Directions API in Cloud Console.
-        </div>
+    if (loadError || billingError) return (
+        <MapFallback
+            reason="billing"
+            corridorNodeMarkers={corridorNodeMarkers}
+            corridorActive={corridorActive}
+            originName={originName}
+            destName={destName}
+        />
     );
     if (!isLoaded) return (
         <div style={{ height: '420px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#050c18', borderRadius: '12px', color: '#00f5ff', fontSize: '0.9rem' }}>
-            Loading Google Maps...
+            <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🗺️</div>
+                <div>Loading map...</div>
+            </div>
         </div>
     );
 

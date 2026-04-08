@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@react-google-maps/api": "^2.20.8",
-    "firebase": "^12.10.0",
+    "firebase": "^12.11.0",
     "leaflet": "^1.9.4",
     "next": "^16.1.6",
     "react": "^18",
